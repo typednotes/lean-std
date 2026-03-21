@@ -18,11 +18,39 @@ import Tests.Base.TestRatio
 import Tests.Base.TestComplex
 import Tests.Base.TestFixed
 import Tests.Base.TestArrow
+-- New base modules
+import Tests.Base.TestProxy
+import Tests.Base.TestBool
+import Tests.Base.TestMaybe
+import Tests.Base.TestDataString
+import Tests.Base.TestProduct
+import Tests.Base.TestFunctorSum
+import Tests.Base.TestApplicative
+import Tests.Base.TestMonad
+import Tests.Base.TestDataChar
+import Tests.Base.TestBits
+import Tests.Base.TestIx
+import Tests.Base.TestDataList
+import Tests.Base.TestUnique
+import Tests.Base.TestIORef
+-- Control
 import Tests.Control.TestMVar
 import Tests.Control.TestChan
 import Tests.Control.TestQSem
 import Tests.Control.TestQSemN
 import Tests.Control.TestConcurrent
+import Tests.Control.TestException
+-- System
+import Tests.System.TestSysIO
+import Tests.System.TestExit
+import Tests.System.TestEnvironment
+-- ByteString
+import Tests.ByteString.TestByteString
+import Tests.ByteString.TestShort
+import Tests.ByteString.TestLazy
+import Tests.ByteString.TestBuilder
+import Tests.ByteString.TestChar8
+import Tests.ByteString.TestLazyChar8
 
 open Tests
 
@@ -49,19 +77,45 @@ def main : IO UInt32 := do
     , ("Complex",       TestComplex.tests)
     , ("Fixed",         TestFixed.tests)
     , ("Arrow",         TestArrow.tests)
+    -- New base modules
+    , ("Proxy",         TestProxy.tests)
+    , ("Bool",          TestBool.tests)
+    , ("Maybe",         TestMaybe.tests)
+    , ("DataString",    TestDataString.tests)
+    , ("Product",       TestProduct.tests)
+    , ("FunctorSum",    TestFunctorSum.tests)
+    , ("Applicative",   TestApplicative.tests)
+    , ("Monad",         TestMonad.tests)
+    , ("DataChar",      TestDataChar.tests)
+    , ("Bits",          TestBits.tests)
+    , ("Ix",            TestIx.tests)
+    , ("DataList",      TestDataList.tests)
+    , ("Exit",          TestExit.tests)
+    -- ByteString
+    , ("ByteString",    TestByteString.tests)
+    , ("ShortByteString", TestShort.tests)
+    , ("LazyByteString", TestLazy.tests)
+    , ("Builder",       TestBuilder.tests)
+    , ("Char8",         TestChar8.tests)
+    , ("LazyChar8",    TestLazyChar8.tests)
     ]
 
   for (name, tests) in suites do
     let failures ← runTests name tests
     totalFailures := totalFailures + failures
 
-  -- Phase 6: Concurrent IO test suites
+  -- IO test suites
   let ioSuites : List (String × IO (List TestResult)) :=
     [ ("MVar",       TestMVar.tests)
     , ("Chan",       TestChan.tests)
     , ("QSem",       TestQSem.tests)
     , ("QSemN",      TestQSemN.tests)
     , ("Concurrent", TestConcurrent.tests)
+    , ("Unique",     TestUnique.tests)
+    , ("IORef",      TestIORef.tests)
+    , ("Exception",  TestException.tests)
+    , ("SysIO",      TestSysIO.tests)
+    , ("Environment", TestEnvironment.tests)
     ]
 
   for (name, testsIO) in ioSuites do

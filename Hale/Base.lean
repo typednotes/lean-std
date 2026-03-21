@@ -6,36 +6,53 @@
   invariants, and guarantees.
 -/
 
--- Phase 0: Foundational
+-- Foundational
 import Hale.Base.Data.Void
 import Hale.Base.Data.Function
 import Hale.Base.Data.Newtype
+import Hale.Base.Data.Bool
+import Hale.Base.Data.Proxy
 
--- Phase 1: Core Abstractions
+-- Core Abstractions
 import Hale.Base.Data.Bifunctor
 import Hale.Base.Data.Functor.Contravariant
 import Hale.Base.Data.Functor.Const
 import Hale.Base.Data.Functor.Identity
 import Hale.Base.Data.Functor.Compose
+import Hale.Base.Data.Functor.Product
+import Hale.Base.Data.Functor.Sum
 import Hale.Base.Control.Category
+import Hale.Base.Control.Applicative
+import Hale.Base.Control.Monad
 
--- Phase 2: Data Structures
+-- Data Structures
 import Hale.Base.Data.List.NonEmpty
+import Hale.Base.Data.List
 import Hale.Base.Data.Either
+import Hale.Base.Data.Maybe
 import Hale.Base.Data.Ord
 import Hale.Base.Data.Tuple
+import Hale.Base.Data.Char
+import Hale.Base.Data.String
+import Hale.Base.Data.Unique
 
--- Phase 3: Traversals
+-- Traversals
 import Hale.Base.Data.Foldable
 import Hale.Base.Data.Traversable
 
--- Phase 4: Numeric Types
+-- Numeric Types
 import Hale.Base.Data.Ratio
 import Hale.Base.Data.Complex
 import Hale.Base.Data.Fixed
+import Hale.Base.Data.Bits
+import Hale.Base.Data.Ix
 
--- Phase 5: Advanced Abstractions
+-- IO and References
+import Hale.Base.Data.IORef
+
+-- Advanced Abstractions
 import Hale.Base.Control.Arrow
+import Hale.Base.Control.Exception
 
 -- Concurrency
 import Hale.Base.Control.Concurrent
@@ -43,3 +60,8 @@ import Hale.Base.Control.Concurrent.MVar
 import Hale.Base.Control.Concurrent.Chan
 import Hale.Base.Control.Concurrent.QSem
 import Hale.Base.Control.Concurrent.QSemN
+
+-- System
+import Hale.Base.System.IO
+import Hale.Base.System.Exit
+import Hale.Base.System.Environment

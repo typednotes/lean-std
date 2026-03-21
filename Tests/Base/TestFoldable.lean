@@ -21,5 +21,9 @@ def tests : List TestResult :=
   , checkEq "Foldable Option none" 0 (Foldable.length (none : Option Nat))
   , checkEq "Foldable NonEmpty length" 3 (Foldable.length (NonEmpty.mk 1 [2, 3]))
   , checkEq "Foldable.sum NonEmpty" 6 (Foldable.sum (NonEmpty.mk 1 [2, 3]))
+  , checkEq "Foldable.minimum? list" (some 1) (Foldable.minimum? [3, 1, 4, 1, 5])
+  , checkEq "Foldable.minimum? empty" (none : Option Nat) (Foldable.minimum? ([] : List Nat))
+  , checkEq "Foldable.maximum? list" (some 5) (Foldable.maximum? [3, 1, 4, 1, 5])
+  , checkEq "Foldable.maximum? empty" (none : Option Nat) (Foldable.maximum? ([] : List Nat))
   ]
 end TestFoldable

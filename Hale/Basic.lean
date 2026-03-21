@@ -1,2 +1,0 @@
--- This file is intentionally left minimal.
--- All functionality lives in Hale.Base and its sub-modules.

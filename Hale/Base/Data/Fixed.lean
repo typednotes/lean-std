@@ -111,6 +111,16 @@ theorem add_exact (a b : Fixed p) :
 theorem sub_exact (a b : Fixed p) :
     (a - b).raw = a.raw - b.raw := rfl
 
+/-- Double negation: $-(-a) = a$. -/
+theorem neg_neg (a : Fixed p) : -(-a) = a := by
+  cases a
+  simp only [Neg.neg, Fixed.mk.injEq]
+  exact Int.neg_neg _
+
+/-- `fromInt 0` yields zero raw value when precision is nonzero. -/
+theorem fromInt_zero : (Fixed.fromInt (p := p) 0).raw = 0 := by
+  simp [fromInt, Int.zero_mul]
+
 /-- Convert to a `Ratio` preserving the exact value:
     $$\text{toRatio}(\text{Fixed}_p(v)) = \frac{v}{10^p}$$
 -/

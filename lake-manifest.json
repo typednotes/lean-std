@@ -71,5 +71,5 @@
    "inputRev": "main",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "«hale»",
+ "name": "hale",
  "lakeDir": ".lake"}

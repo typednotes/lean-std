@@ -28,12 +28,27 @@ Reference: https://hackage.haskell.org/package/base
 | `Hale.Base.Data.Void` | `Data.Void` |
 | `Hale.Base.Data.Function` | `Data.Function` |
 | `Hale.Base.Data.Newtype` | `Data.Monoid` / `Data.Semigroup` |
+| `Hale.Base.Data.Bool` | `Data.Bool` |
+| `Hale.Base.Data.Maybe` | `Data.Maybe` |
+| `Hale.Base.Data.Char` | `Data.Char` |
+| `Hale.Base.Data.String` | `Data.String` |
+| `Hale.Base.Data.List` | `Data.List` |
+| `Hale.Base.Data.Proxy` | `Data.Proxy` |
+| `Hale.Base.Data.Unique` | `Data.Unique` |
+| `Hale.Base.Data.IORef` | `Data.IORef` |
+| `Hale.Base.Data.Bits` | `Data.Bits` |
+| `Hale.Base.Data.Ix` | `Data.Ix` |
 | `Hale.Base.Data.Bifunctor` | `Data.Bifunctor` |
 | `Hale.Base.Data.Functor.Contravariant` | `Data.Functor.Contravariant` |
 | `Hale.Base.Data.Functor.Const` | `Data.Functor.Const` |
 | `Hale.Base.Data.Functor.Identity` | `Data.Functor.Identity` |
 | `Hale.Base.Data.Functor.Compose` | `Data.Functor.Compose` |
+| `Hale.Base.Data.Functor.Product` | `Data.Functor.Product` |
+| `Hale.Base.Data.Functor.Sum` | `Data.Functor.Sum` |
 | `Hale.Base.Control.Category` | `Control.Category` |
+| `Hale.Base.Control.Applicative` | `Control.Applicative` |
+| `Hale.Base.Control.Monad` | `Control.Monad` |
+| `Hale.Base.Control.Exception` | `Control.Exception` |
 | `Hale.Base.Data.List.NonEmpty` | `Data.List.NonEmpty` |
 | `Hale.Base.Data.Either` | `Data.Either` |
 | `Hale.Base.Data.Ord` | `Data.Ord` |
@@ -49,6 +64,22 @@ Reference: https://hackage.haskell.org/package/base
 | `Hale.Base.Control.Concurrent.Chan` | `Control.Concurrent.Chan` |
 | `Hale.Base.Control.Concurrent.QSem` | `Control.Concurrent.QSem` |
 | `Hale.Base.Control.Concurrent.QSemN` | `Control.Concurrent.QSemN` |
+| `Hale.Base.System.IO` | `System.IO` |
+| `Hale.Base.System.Exit` | `System.Exit` |
+| `Hale.Base.System.Environment` | `System.Environment` |
+
+Reference: https://hackage.haskell.org/package/bytestring
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.ByteString.Data.ByteString.Internal` | `Data.ByteString.Internal` |
+| `Hale.ByteString.Data.ByteString` | `Data.ByteString` |
+| `Hale.ByteString.Data.ByteString.Char8` | `Data.ByteString.Char8` |
+| `Hale.ByteString.Data.ByteString.Short` | `Data.ByteString.Short` |
+| `Hale.ByteString.Data.ByteString.Lazy.Internal` | `Data.ByteString.Lazy.Internal` |
+| `Hale.ByteString.Data.ByteString.Lazy` | `Data.ByteString.Lazy` |
+| `Hale.ByteString.Data.ByteString.Lazy.Char8` | `Data.ByteString.Lazy.Char8` |
+| `Hale.ByteString.Data.ByteString.Builder` | `Data.ByteString.Builder` |
 
 ## Folder Organization Policy
 
@@ -104,13 +135,13 @@ Hale/
 
 ## Module Organization
 
-- **Phase 0 (Foundational):** Basic types and combinators — `Void`, `Function`, `Newtype`
-- **Phase 1 (Core Abstractions):** Functor variants and composition — `Bifunctor`, `Contravariant`, `Const`, `Identity`, `Compose`, `Category`
-- **Phase 2 (Data Structures):** Concrete data types — `NonEmpty`, `Either`, `Ord`, `Tuple`
-- **Phase 3 (Traversals):** Fold and traverse abstractions — `Foldable`, `Traversable`
-- **Phase 4 (Numeric Types):** Exact arithmetic — `Ratio`, `Complex`, `Fixed`
-- **Phase 5 (Advanced Abstractions):** Arrow computations — `Arrow`
-- **Phase 6 (Concurrency):** Thread management and synchronisation — `Concurrent`, `MVar`, `Chan`, `QSem`, `QSemN`
+- **Foundational:** Basic types and combinators — `Void`, `Function`, `Newtype`
+- **Core Abstractions:** Functor variants and composition — `Bifunctor`, `Contravariant`, `Const`, `Identity`, `Compose`, `Category`
+- **Data Structures:** Concrete data types — `NonEmpty`, `Either`, `Ord`, `Tuple`
+- **Traversals:** Fold and traverse abstractions — `Foldable`, `Traversable`
+- **Numeric Types:** Exact arithmetic — `Ratio`, `Complex`, `Fixed`
+- **Advanced Abstractions:** Arrow computations — `Arrow`
+- **Concurrency:** Thread management and synchronisation — `Concurrent`, `MVar`, `Chan`, `QSem`, `QSemN`
 
 ## Build & Test
 
@@ -128,6 +159,25 @@ lake exe hale-tests
 # Run Haskell cross-verification (requires GHC)
 bash tests/cross-check/run-all.sh
 ```
+
+## Porting Approach
+
+When porting a Haskell library:
+
+1. **Same API, adapted implementation.** Port the same public API surface. Use the same implementation approach unless Lean's standard library provides a better backing (e.g., `ByteArray`, `HashMap`, `Array`, `IO.FS`) or language differences (lazy vs strict evaluation) make a different implementation more appropriate.
+2. **Port the value-add:** Focus on typed invariants, O(1) slicing, algebraic proofs, and API surface that Lean lacks.
+3. **Port transitive dependencies first.** If the Haskell library depends on another unported Haskell library, port that dependency before proceeding.
+4. **Lean stdlib preference:** When Lean's stdlib already provides equivalent functionality, use it as the backing implementation and provide Haskell-compatible naming on top.
+
+## Haskell Cross-Verification
+
+Every ported module must be cross-verified against Haskell's actual behavior:
+
+1. **Haskell reference program:** `Tests/cross-check/haskell/<Module>.hs` — exercises key operations and prints deterministic output.
+2. **Lean smoke test:** `Main.lean` (or a dedicated exe) produces identical output lines.
+3. **Shell script:** `Tests/cross-check/check-<module>.sh` compares the outputs.
+4. **Coverage targets:** construction, basic operations, edge cases (empty input, single element, boundaries), typeclass behavior (Eq, Ord, Monoid), and I/O roundtrips.
+5. **Run all:** `bash Tests/cross-check/run-all.sh`
 
 ## For Downstream Porters
 
@@ -152,7 +202,7 @@ Every public definition and module must be documented:
 
 1. **Module-level docstring:** Purpose, design rationale, typing guarantees, axiom-dependent properties
 2. **Definition-level docstring:** Include LaTeX equations for the type signature (e.g., `$$\text{take} : \text{MVar}\ \alpha \to \text{BaseIO}\ (\text{Task}\ \alpha)$$`)
-3. **Docs folder:** Each module gets a corresponding `docs/<Phase>/<Module>.md` with:
+3. **Docs folder:** Each module gets a corresponding `docs/<HaskellPath>/<Module>.md` with:
    - Haskell-to-Lean API mapping table
    - Instance documentation
    - Proof/invariant documentation
@@ -178,3 +228,52 @@ Before finalising any module, review for simplification:
 2. **Avoid redundant state copies:** Use `modify` over `get`/`set` when the entire state changes
 3. **Prefer `Std.Mutex.atomically` with direct state operations** over manual lock/unlock
 4. **Minimise `sorry` and `panic!`:** Every `sorry` must have a tracking comment; every `panic!` must be unreachable by construction
+
+## Standard Test Porting Procedure
+
+### Port upstream Haskell tests
+
+Every ported module must also port the corresponding Haskell test suite. The upstream tests are the primary source of test coverage — they define what behavior the port must match. Ported Haskell tests become part of the validation harness and must pass during generation.
+
+### Proofs over tests
+
+When porting a Haskell test, always ask: **can this test be expressed as a proof embedded in the types?** A type-checking theorem is strictly stronger than a runtime test — it holds for all inputs, not just the tested ones, and never needs to be run.
+
+**Preference hierarchy:**
+1. **Proof in source** (theorem in the module) — strongest, covers all cases, verified at compile time
+2. **Runtime test in `Tests/`** — for IO, opaque primitives, or properties that are infeasible to prove
+3. **`sorry`-marked theorem** with tracking comment — for invariants that should be provable but aren't yet
+
+**Examples of tests that become proofs:**
+- "map id = id" → `theorem map_id (x : F α) : id <$> x = x := rfl`
+- "pure a >>= f = f a" → `theorem pure_bind ...`
+- "conjugate (conjugate z) = z" → `theorem conjugate_conjugate ...`
+- "partition preserves length" → `theorem partitionEithers_length ...`
+
+**Tests that stay as tests:**
+- IO roundtrips (write then read back)
+- Opaque ByteArray operations
+- Concrete numeric edge cases (overflow, rounding)
+- Thunk/lazy evaluation behavior
+
+### Coverage rule
+
+Every public `def`, `instance`, `structure`, `class`, or `theorem` must be covered by either a proof or a runtime test.
+
+**Coverage table:**
+
+| Category | Required |
+|---|---|
+| Typeclass instance | All laws (identity, composition, associativity) — prefer as proofs |
+| Algebraic operation | Identity, commutativity, associativity, inverse — prefer as proofs |
+| Constructor | Construction + accessor roundtrip |
+| Conversion | Roundtrip identity (`pack`/`unpack`, `toStrict`/`fromStrict`) — prove when possible |
+| Predicate | True case, false case, empty-input edge case |
+| Fold/traversal | Empty, singleton, multi-element |
+
+**Coverage header comment** required in each test file listing:
+- Proofs in source (covered by type-checking)
+- Tested here (runtime tests)
+- Not yet covered (tracking gaps)
+
+**`proofCovered` helper:** Use `proofCovered` in `Tests/Harness.lean` to record proof-based coverage in test output — a theorem in source always passes, but appears in the report.

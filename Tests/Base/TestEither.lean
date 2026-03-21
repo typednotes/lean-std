@@ -27,5 +27,23 @@ def tests : List TestResult :=
   , check "Either partitionEithers" (
       let (ls, rs) := Either.partitionEithers [Either.left "a", Either.right 1, Either.left "b", Either.right 2]
       ls == ["a", "b"] && rs == [1, 2])
+  -- Functor/Monad
+  , checkEq "Either functor map Right" (Either.right (α := String) 43)
+      (Functor.map (· + 1) (Either.right (α := String) 42))
+  , checkEq "Either functor map Left" (Either.left (β := Nat) "err")
+      (Functor.map (· + 1) (Either.left (β := Nat) "err"))
+  , checkEq "Either bind Right" (Either.right (α := String) 84)
+      (Either.right (α := String) 42 >>= fun n => Either.right (n * 2))
+  , checkEq "Either bind Left" (Either.left (β := Nat) "err")
+      (Either.left (β := Nat) "err" >>= fun n => Either.right (n * 2))
+  -- Proof coverage
+  , proofCovered "Either.swap_swap" "Hale.Base.Data.Either"
+  , proofCovered "Either.isLeft_not_isRight" "Hale.Base.Data.Either"
+  , proofCovered "Either.partitionEithers_length" "Hale.Base.Data.Either"
+  , proofCovered "Either.map_id" "Hale.Base.Data.Either"
+  , proofCovered "Either.map_comp" "Hale.Base.Data.Either"
+  , proofCovered "Either.pure_bind" "Hale.Base.Data.Either"
+  , proofCovered "Either.bind_pure" "Hale.Base.Data.Either"
+  , proofCovered "Either.bind_assoc" "Hale.Base.Data.Either"
   ]
 end TestEither

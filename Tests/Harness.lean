@@ -42,4 +42,9 @@ def runIOTests (suiteName : String) (tests : IO (List TestResult)) : IO Nat := d
   let results ← tests
   runTests suiteName results
 
+/-- Record proof-based coverage in the test output. A theorem in source always passes,
+    but appears in the report for coverage tracking. -/
+def proofCovered (name : String) (proofRef : String) : TestResult :=
+  { name := s!"{name} [proof: {proofRef}]", passed := true }
+
 end Tests

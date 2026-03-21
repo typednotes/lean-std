@@ -3,7 +3,7 @@ import Hale
 open Data Data.Function Data.Functor Data.List Data.Tuple Control Control.Concurrent
 
 def main : IO Unit := do
-  -- ── Phase 0: Foundational ────────────────────
+  -- ── Foundational ────────────────────
   IO.println "=== Newtype wrappers ==="
   let s1 : Sum Nat := ⟨3⟩
   let s2 : Sum Nat := ⟨4⟩
@@ -25,7 +25,7 @@ def main : IO Unit := do
   let f2 : First Nat := ⟨some 42⟩
   IO.println s!"First: {f1} ++ {f2} = {f1 ++ f2}"
 
-  -- ── Phase 1: Core Abstractions ───────────────
+  -- ── Core Abstractions ───────────────
   IO.println "\n=== Identity monad ==="
   let id1 := Identity.mk 42
   let id2 := (· + 1) <$> id1
@@ -36,7 +36,7 @@ def main : IO Unit := do
   let mapped := Bifunctor.bimap (· * 10) (· ++ "!") pair
   IO.println s!"bimap (*10, ++\"!\") ({pair.1}, \"{pair.2}\") = ({mapped.1}, \"{mapped.2}\")"
 
-  -- ── Phase 2: Data Structures ─────────────────
+  -- ── Data Structures ─────────────────
   IO.println "\n=== NonEmpty ==="
   let ne := NonEmpty.mk 1 [2, 3, 4, 5]
   IO.println s!"NonEmpty: {ne}"
@@ -65,7 +65,7 @@ def main : IO Unit := do
   IO.println s!"compare Down(3) Down(7) = {repr (compare d1 d2)}"
   IO.println s!"compare 3 7 = {repr (compare (3 : Nat) (7 : Nat))}"
 
-  -- ── Phase 4: Numeric Types ───────────────────
+  -- ── Numeric Types ───────────────────
   IO.println "\n=== Ratio ==="
   let r1 := Ratio.mk' 1 2 (by omega)
   let r2 := Ratio.mk' 1 3 (by omega)
@@ -88,7 +88,7 @@ def main : IO Unit := do
   let f2 : Fixed 2 := ⟨157⟩  -- 1.57
   IO.println s!"Fixed 2: {f1} + {f2} = {f1 + f2}"
 
-  -- ── Phase 6: Concurrency ─────────────────────
+  -- ── Concurrency ─────────────────────
   IO.println "\n=== MVar ==="
   let mv ← MVar.new 42
   let v ← mv.takeSync
@@ -123,5 +123,16 @@ def main : IO Unit := do
   waitThread tid
   let done ← flag.get
   IO.println s!"forkIO: thread completed = {done}"
+
+  -- ── ByteString ──────────────────────────────
+  IO.println "\n=== ByteString ==="
+  let bs := Data.ByteString.ByteString.pack [72, 101, 108, 108, 111]
+  IO.println s!"bs length = {bs.len}"
+  IO.println s!"bs take 3 = {bs.take 3}"
+  IO.println s!"bs drop 2 = {bs.drop 2}"
+  IO.println s!"bs reverse = {bs.reverse}"
+  IO.println s!"bs elem 108 = {bs.elem 108}"
+  IO.println s!"bs count 108 = {bs.count 108}"
+  IO.println s!"bs isPrefixOf = {Data.ByteString.ByteString.isPrefixOf (Data.ByteString.ByteString.pack [72, 101]) bs}"
 
   IO.println "\nAll smoke tests passed!"

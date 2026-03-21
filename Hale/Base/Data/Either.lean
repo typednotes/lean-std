@@ -121,6 +121,16 @@ theorem partitionEithers_length (l : List (Either α β)) :
     simp [partitionEithers, List.foldr]
     cases e <;> simp_all [partitionEithers] <;> omega
 
+-- Functor laws
+/-- Identity law: `map id = id` for `Either`. -/
+theorem map_id (e : Either α β) : Either.mapRight id e = e := by
+  cases e <;> rfl
+
+/-- Composition law: `map (f ∘ g) = map f ∘ map g` for `Either`. -/
+theorem map_comp (f : γ → δ) (g : β → γ) (e : Either α β) :
+    Either.mapRight (f ∘ g) e = Either.mapRight f (Either.mapRight g e) := by
+  cases e <;> rfl
+
 -- ── Instances ──────────────────────────────────
 
 instance : Functor (Either α) where
@@ -142,6 +152,21 @@ instance : Seq (Either α) where
 instance : Applicative (Either α) where
 
 instance : Monad (Either α) where
+
+-- Monad laws
+/-- Left identity: `pure a >>= f = f a`. -/
+theorem pure_bind (a : β) (f : β → Either α γ) :
+    (Either.right a) >>= f = f a := rfl
+
+/-- Right identity: `m >>= pure = m`. -/
+theorem bind_pure (e : Either α β) :
+    e >>= Either.right = e := by
+  cases e <;> rfl
+
+/-- Associativity: `(m >>= f) >>= g = m >>= (λ x → f x >>= g)`. -/
+theorem bind_assoc (e : Either α β) (f : β → Either α γ) (g : γ → Either α δ) :
+    (e >>= f) >>= g = e >>= (fun x => f x >>= g) := by
+  cases e <;> rfl
 
 instance : Bifunctor Either where
   bimap f g e := match e with
