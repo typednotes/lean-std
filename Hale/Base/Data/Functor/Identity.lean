@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Identity — The identity functor/monad
+  Hale.Base.Identity — The identity functor/monad
 
   The simplest functor: wraps a value with no extra structure.
 -/

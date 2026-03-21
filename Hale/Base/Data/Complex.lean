@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Complex — Complex numbers
+  Hale.Base.Complex — Complex numbers
 
   Complex numbers over an arbitrary type, with algebraic operations and proofs.
 

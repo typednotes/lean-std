@@ -1,5 +1,5 @@
 # Newtype
-**Lean:** `LeanStd.Base.Newtype` | **Haskell:** `Data.Monoid` / `Data.Semigroup`
+**Lean:** `Hale.Base.Newtype` | **Haskell:** `Data.Monoid` / `Data.Semigroup`
 
 ## Overview
 Monoid/semigroup wrappers: `Dual`, `Endo`, `First`, `Last`, `Sum`, `Product`, `All`, `Any`. Each wraps a value and provides an `Append` instance with specific combining semantics.

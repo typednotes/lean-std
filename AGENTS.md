@@ -17,7 +17,7 @@ when proofs are feasible.
 
 ## Adding Missing Modules or Functions
 
-When porting a Haskell package that depends on `base` or on an already-ported package, you may discover that a module or function is missing from `lean-std`. In that case, add it directly to the appropriate dependency (`lean-std` for `base`, or the corresponding ported package) with the same level of rigor:
+When porting a Haskell package that depends on `base` or on an already-ported package, you may discover that a module or function is missing from `hale`. In that case, add it directly to the appropriate dependency (`hale` for `base`, or the corresponding ported package) with the same level of rigor:
 
 1. **Maximalist typing:** Encode correctness proofs, invariants, and guarantees in the types (see "Typing approach" above)
 2. **Lawful instances:** If adding a typeclass instance, prove the relevant laws (identity, composition, associativity, etc.)

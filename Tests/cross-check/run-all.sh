@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-echo "═══ lean-std cross-check suite ═══"
+echo "═══ hale cross-check suite ═══"
 echo ""
 
 total_pass=0

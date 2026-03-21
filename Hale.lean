@@ -1,3 +1,3 @@
--- This module serves as the root of the `LeanStd` library.
+-- This module serves as the root of the `Hale` library.
 -- Import modules here that should be built as part of the library.
-import LeanStd.Base
+import Hale.Base

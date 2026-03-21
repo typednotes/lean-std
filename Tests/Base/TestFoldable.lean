@@ -1,4 +1,4 @@
-import LeanStd
+import Hale
 import Tests.Harness
 
 open Data Data.List Tests

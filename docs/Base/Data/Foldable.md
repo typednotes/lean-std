@@ -1,5 +1,5 @@
 # Foldable
-**Lean:** `LeanStd.Base.Foldable` | **Haskell:** `Data.Foldable`
+**Lean:** `Hale.Base.Foldable` | **Haskell:** `Data.Foldable`
 
 ## Overview
 Typeclass for structures that can be folded to a summary value. Provides a rich API with many derived operations built on top of `foldr`.

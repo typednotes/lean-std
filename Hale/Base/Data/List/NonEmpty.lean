@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.NonEmpty — Non-empty list
+  Hale.Base.NonEmpty — Non-empty list
 
   A list guaranteed to have at least one element, providing total `head` and `last`.
 

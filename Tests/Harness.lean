@@ -1,5 +1,5 @@
 /-
-  Tests.Harness — Minimal test framework for lean-std
+  Tests.Harness — Minimal test framework for hale
 -/
 namespace Tests
 

@@ -1,5 +1,5 @@
 # Compose
-**Lean:** `LeanStd.Base.Compose` | **Haskell:** `Data.Functor.Compose`
+**Lean:** `Hale.Base.Compose` | **Haskell:** `Data.Functor.Compose`
 
 ## Overview
 Composition of functors/applicatives. `Compose F G a` wraps `F (G a)`, allowing two functors to be composed into a single functor (or two applicatives into a single applicative).

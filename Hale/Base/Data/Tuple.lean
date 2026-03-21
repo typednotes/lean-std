@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Tuple — Tuple (product type) utilities
+  Hale.Base.Tuple — Tuple (product type) utilities
 
   Provides combinators for `Prod` with involution and isomorphism proofs.
 -/

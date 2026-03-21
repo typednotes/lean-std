@@ -1,5 +1,5 @@
 # Chan
-**Lean:** `LeanStd.Control.Concurrent.Chan` | **Haskell:** `Control.Concurrent.Chan`
+**Lean:** `Hale.Control.Concurrent.Chan` | **Haskell:** `Control.Concurrent.Chan`
 
 ## Overview
 An unbounded FIFO channel with subscriber-based duplication. Internally uses a `Std.Queue` buffer protected by a `Std.Mutex`, with a queue of reader promises for when the buffer is empty. A shared write-side mutex holds the subscriber list, enabling `dup`.
@@ -21,7 +21,7 @@ All blocking uses promises: `read` returns `BaseIO (Task a)`, never blocking an 
 
 ## Subscriber-Based Dup Design
 
-Unlike Haskell's linked-list-of-MVars implementation, lean-std uses a **subscriber array**:
+Unlike Haskell's linked-list-of-MVars implementation, hale uses a **subscriber array**:
 
 - Each `Chan` has a private `readState` (per-reader buffer + waiters) and a shared `writeState` (subscriber list).
 - `write` delivers the value to **all** current subscribers.
@@ -47,9 +47,9 @@ A single `write` delivers to all current subscribers atomically (the subscriber 
 
 ## Example
 ```lean
-import LeanStd.Control.Concurrent.Chan
+import Hale.Control.Concurrent.Chan
 
-open LeanStd
+open Hale
 
 -- Create a channel
 let ch <- Chan.new Nat

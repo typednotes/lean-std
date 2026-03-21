@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Function — Missing combinators
+  Hale.Base.Function — Missing combinators
 
   Provides `on`, `applyTo` (flip apply / Haskell's `&`), and re-exports `flip`.
 -/

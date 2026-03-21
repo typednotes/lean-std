@@ -1,5 +1,5 @@
 # QSemN
-**Lean:** `LeanStd.Control.Concurrent.QSemN` | **Haskell:** `Control.Concurrent.QSemN`
+**Lean:** `Hale.Control.Concurrent.QSemN` | **Haskell:** `Control.Concurrent.QSemN`
 
 ## Overview
 A generalised quantity semaphore that allows acquiring and releasing arbitrary amounts of a resource. Like `QSem`, but `wait` and `signal` take a `Nat` parameter for the number of units.
@@ -36,9 +36,9 @@ When `signal` adds resources, it greedily wakes FIFO-ordered waiters whose reque
 
 ## Example
 ```lean
-import LeanStd.Control.Concurrent.QSemN
+import Hale.Control.Concurrent.QSemN
 
-open LeanStd
+open Hale
 
 -- Create a semaphore with 100 units (e.g., bytes of bandwidth)
 let sem <- QSemN.new 100

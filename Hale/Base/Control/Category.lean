@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Category — Category typeclass
+  Hale.Base.Category — Category typeclass
 
   A category has identity morphisms and associative composition.
 -/

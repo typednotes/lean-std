@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Bifunctor — Bifunctor typeclass
+  Hale.Base.Bifunctor — Bifunctor typeclass
 
   `Bifunctor` maps over both components of a two-parameter type.
   Instances for `Prod`, `Sum`, and `Except`.

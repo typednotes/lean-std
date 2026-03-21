@@ -1,5 +1,5 @@
 # Function
-**Lean:** `LeanStd.Base.Function` | **Haskell:** `Data.Function`
+**Lean:** `Hale.Base.Function` | **Haskell:** `Data.Function`
 
 ## Overview
 Standard function combinators: `on`, `applyTo` (`&`), `const` (K combinator), `flip` (C combinator).

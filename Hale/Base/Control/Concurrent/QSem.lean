@@ -1,5 +1,5 @@
 /-
-  LeanStd.Control.Concurrent.QSem — Quantity semaphore
+  Hale.Control.Concurrent.QSem — Quantity semaphore
 
   A simple quantity semaphore: at most $n$ resources can be acquired
   concurrently.  Modelled after Haskell's `Control.Concurrent.QSem`.
@@ -18,7 +18,7 @@
   by the `signal` implementation which wakes a waiter before incrementing.
 -/
 
-import LeanStd.Base.Control.Concurrent.MVar
+import Hale.Base.Control.Concurrent.MVar
 
 namespace Control.Concurrent
 

@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Newtype — Semigroup/Monoid newtype wrappers
+  Hale.Base.Newtype — Semigroup/Monoid newtype wrappers
 
   Provides `Dual`, `Endo`, `First`, `Last`, `Sum`, `Product`, `All`, `Any`.
   Each with `Append`/`BEq`/`Ord` instances + associativity/identity proofs.

@@ -1,5 +1,5 @@
 # Arrow
-**Lean:** `LeanStd.Base.Arrow` | **Haskell:** `Control.Arrow`
+**Lean:** `Hale.Base.Arrow` | **Haskell:** `Control.Arrow`
 
 ## Overview
 Arrow abstraction for generalized function-like computations. Extends `Category` with lifting and product/sum operations.

@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Foldable — Foldable typeclass
+  Hale.Base.Foldable — Foldable typeclass
 
   Structures that can be folded to a summary value.
 
@@ -9,8 +9,8 @@
   `foldMap`, `any`, `all`, `find?`, `elem`, `minimum?`, `maximum?`, `sum`, `product`.
 -/
 
-import LeanStd.Base.Data.List.NonEmpty
-import LeanStd.Base.Data.Either
+import Hale.Base.Data.List.NonEmpty
+import Hale.Base.Data.Either
 
 namespace Data
 

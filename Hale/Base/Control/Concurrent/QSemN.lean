@@ -1,5 +1,5 @@
 /-
-  LeanStd.Control.Concurrent.QSemN — Generalised quantity semaphore
+  Hale.Control.Concurrent.QSemN — Generalised quantity semaphore
 
   Like `QSem`, but allows acquiring and releasing arbitrary quantities.
   Modelled after Haskell's `Control.Concurrent.QSemN`.
@@ -18,7 +18,7 @@
   whose requested amount can be satisfied.
 -/
 
-import LeanStd.Base.Control.Concurrent.MVar
+import Hale.Base.Control.Concurrent.MVar
 
 namespace Control.Concurrent
 

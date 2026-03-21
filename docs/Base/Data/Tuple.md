@@ -1,5 +1,5 @@
 # Tuple
-**Lean:** `LeanStd.Base.Tuple` | **Haskell:** `Data.Tuple` + `Prelude`
+**Lean:** `Hale.Base.Tuple` | **Haskell:** `Data.Tuple` + `Prelude`
 
 ## Overview
 Pair operations: swap, map components, curry/uncurry. Provides bidirectional conversions between curried and uncurried function forms.

@@ -71,5 +71,5 @@
    "inputRev": "main",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "«lean-std»",
+ "name": "«hale»",
  "lakeDir": ".lake"}

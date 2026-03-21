@@ -1,5 +1,5 @@
 # Ratio
-**Lean:** `LeanStd.Base.Ratio` | **Haskell:** `Data.Ratio`
+**Lean:** `Hale.Base.Ratio` | **Haskell:** `Data.Ratio`
 
 ## Overview
 Exact rational arithmetic. Invariants are enforced in the type: the denominator is always positive and the numerator and denominator are always coprime.

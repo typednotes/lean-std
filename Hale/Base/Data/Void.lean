@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Void — Wraps `Empty` with a usable API
+  Hale.Base.Void — Wraps `Empty` with a usable API
 
   Provides vacuous instances and `absurd` for the uninhabited type.
 -/

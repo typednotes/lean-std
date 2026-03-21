@@ -1,5 +1,5 @@
 /-
-  LeanStd.Control.Concurrent — Thread management primitives
+  Hale.Control.Concurrent — Thread management primitives
 
   Provides `ThreadId`, `forkIO`, `forkFinally`, `threadDelay`, `yield`, and
   `killThread`, modelled after Haskell's `Control.Concurrent`.
@@ -19,7 +19,7 @@
   * `forkFinally` guarantees the finaliser runs regardless of success/failure.
 -/
 
-import LeanStd.Base.Control.Concurrent.MVar
+import Hale.Base.Control.Concurrent.MVar
 import Std.Sync.CancellationToken
 
 namespace Control.Concurrent

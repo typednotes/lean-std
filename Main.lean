@@ -1,4 +1,4 @@
-import LeanStd
+import Hale
 
 open Data Data.Function Data.Functor Data.List Data.Tuple Control Control.Concurrent
 

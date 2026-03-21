@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Either — Sum type with bifunctorial API
+  Hale.Base.Either — Sum type with bifunctorial API
 
   `Either α β` represents a value that is either `Left α` or `Right β`.
   This is Haskell's `Either`, providing a right-biased monad.
@@ -12,7 +12,7 @@
   - `partitionEithers` with length preservation proof
 -/
 
-import LeanStd.Base.Data.Bifunctor
+import Hale.Base.Data.Bifunctor
 
 namespace Data
 

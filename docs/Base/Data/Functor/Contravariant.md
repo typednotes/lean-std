@@ -1,5 +1,5 @@
 # Contravariant
-**Lean:** `LeanStd.Base.Contravariant` | **Haskell:** `Data.Functor.Contravariant`
+**Lean:** `Hale.Base.Contravariant` | **Haskell:** `Data.Functor.Contravariant`
 
 ## Overview
 Contravariant functors — types that consume values rather than produce them. Where a covariant functor maps over outputs, a contravariant functor maps over inputs.

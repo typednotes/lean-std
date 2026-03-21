@@ -1,5 +1,5 @@
 # Concurrent
-**Lean:** `LeanStd.Control.Concurrent` | **Haskell:** `Control.Concurrent`
+**Lean:** `Hale.Control.Concurrent` | **Haskell:** `Control.Concurrent`
 
 ## Overview
 Thread management primitives: forking lightweight threads, cooperative cancellation, delays, and yielding. Threads run on Lean's task pool via `IO.asTask`, not as 1:1 OS threads.
@@ -18,7 +18,7 @@ Thread management primitives: forking lightweight threads, cooperative cancellat
 
 ## Differences from GHC
 
-| Aspect | GHC | lean-std |
+| Aspect | GHC | hale |
 |--------|-----|----------|
 | Thread model | Green threads with RTS scheduler | `IO.asTask` on Lean's thread pool |
 | Cancellation | Asynchronous exceptions (`throwTo`) | Cooperative `CancellationToken` |
@@ -50,9 +50,9 @@ Fields `task` and `cancelToken` are private; the only public field is `id`.
 
 ## Example
 ```lean
-import LeanStd.Control.Concurrent
+import Hale.Control.Concurrent
 
-open LeanStd
+open Hale
 
 -- Fork a thread that prints a message
 let tid <- forkIO do

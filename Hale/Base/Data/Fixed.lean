@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Fixed — Fixed-point decimal arithmetic
+  Hale.Base.Fixed — Fixed-point decimal arithmetic
 
   A fixed-point number with type-level precision, preventing accidental mixing
   of different precisions.
@@ -17,7 +17,7 @@
   - `toRatio` conversion preserves the exact value
 -/
 
-import LeanStd.Base.Data.Ratio
+import Hale.Base.Data.Ratio
 
 namespace Data
 

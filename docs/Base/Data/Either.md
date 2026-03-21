@@ -1,5 +1,5 @@
 # Either
-**Lean:** `LeanStd.Base.Either` | **Haskell:** `Data.Either`
+**Lean:** `Hale.Base.Either` | **Haskell:** `Data.Either`
 
 ## Overview
 Sum type with `Left` and `Right` constructors. Right-biased for `Functor`/`Monad` instances. Includes partitioning of lists of `Either` values.

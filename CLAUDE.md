@@ -15,43 +15,47 @@ Ideally the types give information about
 
 when proofs are feasible.
 
+## Lazy vs Strict Evaluation
+
+Haskell is lazily evaluated while Lean is strictly evaluated. When porting Haskell code, be aware that some idioms rely on laziness (e.g., infinite lists, guarded recursion, lazy fields in data types). Use `Stream` or `Thunk` in Lean to emulate Haskell's lazy behavior when necessary.
+
 ## Haskell → Lean Module Mapping
 
 Reference: https://hackage.haskell.org/package/base
 
 | Lean Module | Haskell Module |
 |---|---|
-| `LeanStd.Base.Data.Void` | `Data.Void` |
-| `LeanStd.Base.Data.Function` | `Data.Function` |
-| `LeanStd.Base.Data.Newtype` | `Data.Monoid` / `Data.Semigroup` |
-| `LeanStd.Base.Data.Bifunctor` | `Data.Bifunctor` |
-| `LeanStd.Base.Data.Functor.Contravariant` | `Data.Functor.Contravariant` |
-| `LeanStd.Base.Data.Functor.Const` | `Data.Functor.Const` |
-| `LeanStd.Base.Data.Functor.Identity` | `Data.Functor.Identity` |
-| `LeanStd.Base.Data.Functor.Compose` | `Data.Functor.Compose` |
-| `LeanStd.Base.Control.Category` | `Control.Category` |
-| `LeanStd.Base.Data.List.NonEmpty` | `Data.List.NonEmpty` |
-| `LeanStd.Base.Data.Either` | `Data.Either` |
-| `LeanStd.Base.Data.Ord` | `Data.Ord` |
-| `LeanStd.Base.Data.Tuple` | `Data.Tuple` + `Prelude` |
-| `LeanStd.Base.Data.Foldable` | `Data.Foldable` |
-| `LeanStd.Base.Data.Traversable` | `Data.Traversable` |
-| `LeanStd.Base.Data.Ratio` | `Data.Ratio` |
-| `LeanStd.Base.Data.Complex` | `Data.Complex` |
-| `LeanStd.Base.Data.Fixed` | `Data.Fixed` |
-| `LeanStd.Base.Control.Arrow` | `Control.Arrow` |
-| `LeanStd.Base.Control.Concurrent` | `Control.Concurrent` |
-| `LeanStd.Base.Control.Concurrent.MVar` | `Control.Concurrent.MVar` |
-| `LeanStd.Base.Control.Concurrent.Chan` | `Control.Concurrent.Chan` |
-| `LeanStd.Base.Control.Concurrent.QSem` | `Control.Concurrent.QSem` |
-| `LeanStd.Base.Control.Concurrent.QSemN` | `Control.Concurrent.QSemN` |
+| `Hale.Base.Data.Void` | `Data.Void` |
+| `Hale.Base.Data.Function` | `Data.Function` |
+| `Hale.Base.Data.Newtype` | `Data.Monoid` / `Data.Semigroup` |
+| `Hale.Base.Data.Bifunctor` | `Data.Bifunctor` |
+| `Hale.Base.Data.Functor.Contravariant` | `Data.Functor.Contravariant` |
+| `Hale.Base.Data.Functor.Const` | `Data.Functor.Const` |
+| `Hale.Base.Data.Functor.Identity` | `Data.Functor.Identity` |
+| `Hale.Base.Data.Functor.Compose` | `Data.Functor.Compose` |
+| `Hale.Base.Control.Category` | `Control.Category` |
+| `Hale.Base.Data.List.NonEmpty` | `Data.List.NonEmpty` |
+| `Hale.Base.Data.Either` | `Data.Either` |
+| `Hale.Base.Data.Ord` | `Data.Ord` |
+| `Hale.Base.Data.Tuple` | `Data.Tuple` + `Prelude` |
+| `Hale.Base.Data.Foldable` | `Data.Foldable` |
+| `Hale.Base.Data.Traversable` | `Data.Traversable` |
+| `Hale.Base.Data.Ratio` | `Data.Ratio` |
+| `Hale.Base.Data.Complex` | `Data.Complex` |
+| `Hale.Base.Data.Fixed` | `Data.Fixed` |
+| `Hale.Base.Control.Arrow` | `Control.Arrow` |
+| `Hale.Base.Control.Concurrent` | `Control.Concurrent` |
+| `Hale.Base.Control.Concurrent.MVar` | `Control.Concurrent.MVar` |
+| `Hale.Base.Control.Concurrent.Chan` | `Control.Concurrent.Chan` |
+| `Hale.Base.Control.Concurrent.QSem` | `Control.Concurrent.QSem` |
+| `Hale.Base.Control.Concurrent.QSemN` | `Control.Concurrent.QSemN` |
 
 ## Folder Organization Policy
 
-The `LeanStd` project ports multiple Haskell libraries. Each Haskell library gets its own **top-level folder** named after the library (Lean naming convention). Within that folder, the **subfolder path mirrors the Haskell module path** exactly.
+The `Hale` project ports multiple Haskell libraries. Each Haskell library gets its own **top-level folder** named after the library (Lean naming convention). Within that folder, the **subfolder path mirrors the Haskell module path** exactly.
 
 ```
-LeanStd/
+Hale/
   Base/                                  ← Haskell `base` library
     Data/
       Void.lean                          ← Data.Void
@@ -87,12 +91,12 @@ LeanStd/
 1. **Top-level folder = Haskell library name** in Lean naming convention (`Base` for `base`, `Containers` for `containers`, etc.)
 2. **Subfolder path = Haskell module path** exactly (`Data/Functor/Const.lean` for `Data.Functor.Const`)
 3. **Namespace = Haskell module path** — namespaces mirror the Haskell hierarchy, NOT the library name. Examples:
-   - `LeanStd/Base/Data/Ratio.lean` → `namespace Data` (outer), `namespace Ratio` (inner for methods)
-   - `LeanStd/Base/Data/Functor/Const.lean` → `namespace Data.Functor` (outer), `namespace Const` (inner)
-   - `LeanStd/Base/Control/Concurrent/MVar.lean` → `namespace Control.Concurrent` (outer), `namespace MVar` (inner)
+   - `Hale/Base/Data/Ratio.lean` → `namespace Data` (outer), `namespace Ratio` (inner for methods)
+   - `Hale/Base/Data/Functor/Const.lean` → `namespace Data.Functor` (outer), `namespace Const` (inner)
+   - `Hale/Base/Control/Concurrent/MVar.lean` → `namespace Control.Concurrent` (outer), `namespace MVar` (inner)
    - Users write `open Data` or `open Control.Concurrent` to access types, just like Haskell `import Data.Ratio` or `import Control.Concurrent.MVar`
 4. **Sub-namespaces for methods** — use `namespace Ratio` within `namespace Data` for dot-notation methods (e.g., `Ratio.floor`)
-5. **Re-export file** — each library has a re-export file (`LeanStd/Base.lean`) that imports all its modules
+5. **Re-export file** — each library has a re-export file (`Hale/Base.lean`) that imports all its modules
 
 **Tests** mirror the Haskell module structure: `Tests/Control/TestMVar.lean` for `Control.Concurrent.MVar`.
 
@@ -115,11 +119,11 @@ LeanStd/
 lake build
 
 # Run smoke tests
-lake exe lean-std
+lake exe hale
 
 # Build and run the test suite
-lake build lean-std-tests
-lake exe lean-std-tests
+lake build hale-tests
+lake exe hale-tests
 
 # Run Haskell cross-verification (requires GHC)
 bash tests/cross-check/run-all.sh
@@ -127,11 +131,11 @@ bash tests/cross-check/run-all.sh
 
 ## For Downstream Porters
 
-To port a Haskell library that depends on `base`, depend on `lean-std` for the base types. The mapping table above shows which Lean module corresponds to each Haskell `base` module.
+To port a Haskell library that depends on `base`, depend on `hale` for the base types. The mapping table above shows which Lean module corresponds to each Haskell `base` module.
 
 ## Adding Missing Modules or Functions
 
-When porting a Haskell package that depends on `base` or on an already-ported package, you may discover that a module or function is missing from `lean-std`. In that case, add it directly to the appropriate dependency (`lean-std` for `base`, or the corresponding ported package) with the same level of rigor:
+When porting a Haskell package that depends on `base` or on an already-ported package, you may discover that a module or function is missing from `hale`. In that case, add it directly to the appropriate dependency (`hale` for `base`, or the corresponding ported package) with the same level of rigor:
 
 1. **Maximalist typing:** Encode correctness proofs, invariants, and guarantees in the types (see "Typing approach" above)
 2. **Lawful instances:** If adding a typeclass instance, prove the relevant laws (identity, composition, associativity, etc.)

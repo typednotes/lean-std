@@ -1,5 +1,5 @@
 # Category
-**Lean:** `LeanStd.Base.Category` | **Haskell:** `Control.Category`
+**Lean:** `Hale.Base.Category` | **Haskell:** `Control.Category`
 
 ## Overview
 Abstract category with identity and composition. Uses diagrammatic order (`f >>> g = g . f`), which reads left-to-right as a pipeline.

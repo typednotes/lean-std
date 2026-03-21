@@ -1,5 +1,5 @@
 # Void
-**Lean:** `LeanStd.Base.Void` | **Haskell:** `Data.Void`
+**Lean:** `Hale.Base.Void` | **Haskell:** `Data.Void`
 
 ## Overview
 Uninhabited type (alias for `Empty`). Provides `absurd` for ex falso reasoning.

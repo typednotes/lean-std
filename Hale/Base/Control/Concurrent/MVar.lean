@@ -1,5 +1,5 @@
 /-
-  LeanStd.Control.Concurrent.MVar — Promise-based MVar implementation
+  Hale.Control.Concurrent.MVar — Promise-based MVar implementation
 
   An $\text{MVar}\ \alpha$ is a synchronisation variable that is either
   empty ($\bot$) or holds a value of type $\alpha$.  All blocking is via

@@ -1,5 +1,5 @@
 # Const
-**Lean:** `LeanStd.Base.Const` | **Haskell:** `Data.Functor.Const`
+**Lean:** `Hale.Base.Const` | **Haskell:** `Data.Functor.Const`
 
 ## Overview
 Constant functor — ignores its second type parameter. Useful for phantom types and accumulating effects during traversals.

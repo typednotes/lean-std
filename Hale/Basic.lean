@@ -1,2 +1,2 @@
 -- This file is intentionally left minimal.
--- All functionality lives in LeanStd.Base and its sub-modules.
+-- All functionality lives in Hale.Base and its sub-modules.

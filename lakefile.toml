@@ -1,7 +1,7 @@
-name = "lean-std"
+name = "hale"
 version = "0.1.0"
-defaultTargets = ["lean-std"]
-testDriver = "«lean-std-tests»"
+defaultTargets = ["hale"]
+testDriver = "«hale-tests»"
 
 [[require]]
 name = "«doc-gen4»"
@@ -9,10 +9,10 @@ git = "https://github.com/leanprover/doc-gen4"
 rev = "main"
 
 [[lean_lib]]
-name = "LeanStd"
+name = "Hale"
 
 [[lean_exe]]
-name = "lean-std"
+name = "hale"
 root = "Main"
 
 [[lean_lib]]
@@ -20,5 +20,5 @@ name = "Tests"
 globs = ["Tests"]
 
 [[lean_exe]]
-name = "lean-std-tests"
+name = "hale-tests"
 root = "Tests.Main"

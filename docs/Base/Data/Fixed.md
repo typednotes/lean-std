@@ -1,5 +1,5 @@
 # Fixed
-**Lean:** `LeanStd.Base.Fixed` | **Haskell:** `Data.Fixed`
+**Lean:** `Hale.Base.Fixed` | **Haskell:** `Data.Fixed`
 
 ## Overview
 Fixed-point decimal arithmetic. `Fixed p` stores integers scaled by `10^p`. Addition and subtraction are exact (no rounding).

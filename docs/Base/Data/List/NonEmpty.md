@@ -1,5 +1,5 @@
 # NonEmpty
-**Lean:** `LeanStd.Base.NonEmpty` | **Haskell:** `Data.List.NonEmpty`
+**Lean:** `Hale.Base.NonEmpty` | **Haskell:** `Data.List.NonEmpty`
 
 ## Overview
 Non-empty list with a guaranteed minimum of one element. The `length` function returns a subtype `{n : Nat // n >= 1}`, encoding the non-emptiness invariant at the type level.

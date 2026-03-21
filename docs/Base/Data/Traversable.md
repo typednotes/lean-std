@@ -1,5 +1,5 @@
 # Traversable
-**Lean:** `LeanStd.Base.Traversable` | **Haskell:** `Data.Traversable`
+**Lean:** `Hale.Base.Traversable` | **Haskell:** `Data.Traversable`
 
 ## Overview
 Typeclass for structures that can be traversed with effects. Extends `Functor` by allowing each element to produce an applicative effect, then collecting those effects.

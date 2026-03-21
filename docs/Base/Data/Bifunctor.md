@@ -1,5 +1,5 @@
 # Bifunctor
-**Lean:** `LeanStd.Base.Bifunctor` | **Haskell:** `Data.Bifunctor`
+**Lean:** `Hale.Base.Bifunctor` | **Haskell:** `Data.Bifunctor`
 
 ## Overview
 Typeclass for types with two covariant type parameters. Provides `bimap`, `mapFst`, `mapSnd`.

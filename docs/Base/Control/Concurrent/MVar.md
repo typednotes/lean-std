@@ -1,10 +1,10 @@
 # MVar
-**Lean:** `LeanStd.Control.Concurrent.MVar` | **Haskell:** `Control.Concurrent.MVar`
+**Lean:** `Hale.Control.Concurrent.MVar` | **Haskell:** `Control.Concurrent.MVar`
 
 ## Overview
 A synchronisation variable that is either empty or holds a value of type `a`. All blocking is promise-based: waiting tasks are dormant `IO.Promise` values, not blocked OS threads. This allows scaling to millions of concurrent tasks.
 
-MVar is the fundamental building block for all other concurrency primitives in lean-std (`Chan`, `QSem`, `QSemN`).
+MVar is the fundamental building block for all other concurrency primitives in hale (`Chan`, `QSem`, `QSemN`).
 
 ## Concurrent Type Alias
 
@@ -65,9 +65,9 @@ Waiters are queued in `Std.Queue` and dequeued in insertion order. Both takers a
 
 ## Example
 ```lean
-import LeanStd.Control.Concurrent.MVar
+import Hale.Control.Concurrent.MVar
 
-open LeanStd
+open Hale
 
 -- Create an MVar with an initial value
 let mv <- MVar.new 42

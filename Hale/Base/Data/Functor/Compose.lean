@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Compose — Functor/Applicative composition
+  Hale.Base.Compose — Functor/Applicative composition
 
   `Compose F G α` wraps `F (G α)`. The composition of two functors is a functor;
   the composition of two applicatives is an applicative.

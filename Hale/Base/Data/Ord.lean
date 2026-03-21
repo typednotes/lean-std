@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Ord — Ordering utilities
+  Hale.Base.Ord — Ordering utilities
 
   Provides `Down` for reversed ordering, `comparing`, and `clamp` with proof.
 -/

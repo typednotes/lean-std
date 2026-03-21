@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Traversable — Traversable typeclass
+  Hale.Base.Traversable — Traversable typeclass
 
   Structures that can be traversed with an applicative effect.
 
@@ -9,8 +9,8 @@
   Provides `traverse` and `sequence` operations.
 -/
 
-import LeanStd.Base.Data.Foldable
-import LeanStd.Base.Data.Functor.Identity
+import Hale.Base.Data.Foldable
+import Hale.Base.Data.Functor.Identity
 
 namespace Data
 open Data.Functor

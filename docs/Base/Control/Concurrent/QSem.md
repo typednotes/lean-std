@@ -1,5 +1,5 @@
 # QSem
-**Lean:** `LeanStd.Control.Concurrent.QSem` | **Haskell:** `Control.Concurrent.QSem`
+**Lean:** `Hale.Control.Concurrent.QSem` | **Haskell:** `Control.Concurrent.QSem`
 
 ## Overview
 A simple quantity semaphore: at most `n` resources can be acquired concurrently. All blocking is promise-based. Waiters are served in FIFO order.
@@ -36,9 +36,9 @@ Waiters are queued in `Std.Queue` and dequeued in insertion order.
 
 ## Example
 ```lean
-import LeanStd.Control.Concurrent.QSem
+import Hale.Control.Concurrent.QSem
 
-open LeanStd
+open Hale
 
 -- Create a semaphore allowing 3 concurrent accesses
 let sem <- QSem.new 3

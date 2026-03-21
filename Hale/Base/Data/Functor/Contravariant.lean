@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Contravariant — Contravariant functor
+  Hale.Base.Contravariant — Contravariant functor
 
   A contravariant functor reverses the direction of morphisms.
 -/

@@ -3,7 +3,7 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 echo "Cross-check: Newtypes"
 # Compare key computed values
-LEAN=$(lake exe lean-std 2>/dev/null)
+LEAN=$(lake exe hale 2>/dev/null)
 lean_sum=$(echo "$LEAN" | grep "^Sum:" | sed 's/.*= //')
 lean_prod=$(echo "$LEAN" | grep "^Product:" | sed 's/.*= //')
 lean_all=$(echo "$LEAN" | grep "^All:" | sed 's/.*= //')

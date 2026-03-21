@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Const — The constant functor
+  Hale.Base.Const — The constant functor
 
   `Const α β` holds a value of type `α`, ignoring `β`.
   Useful for accumulating in traversals.

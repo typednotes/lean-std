@@ -1,5 +1,5 @@
 /-
-  LeanStd.Control.Concurrent.Chan — Unbounded FIFO channel
+  Hale.Control.Concurrent.Chan — Unbounded FIFO channel
 
   Modelled after Haskell's `Control.Concurrent.Chan`.
 
@@ -22,7 +22,7 @@
   If there are buffered values, no reader should be waiting.
 -/
 
-import LeanStd.Base.Control.Concurrent.MVar
+import Hale.Base.Control.Concurrent.MVar
 
 namespace Control.Concurrent
 

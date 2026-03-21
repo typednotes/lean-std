@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Arrow — Arrow typeclass
+  Hale.Base.Arrow — Arrow typeclass
 
   Arrows generalize functions with additional structure, extending `Category`.
   Provides `Arrow` and `ArrowChoice` typeclasses with `Fun` instances.
@@ -9,8 +9,8 @@
   $$\text{Category} \to \text{Arrow} \to \text{ArrowChoice}$$
 -/
 
-import LeanStd.Base.Control.Category
-import LeanStd.Base.Data.Either
+import Hale.Base.Control.Category
+import Hale.Base.Data.Either
 
 namespace Control
 open Data

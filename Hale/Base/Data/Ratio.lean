@@ -1,5 +1,5 @@
 /-
-  LeanStd.Base.Ratio — Exact rational arithmetic
+  Hale.Base.Ratio — Exact rational arithmetic
 
   A rational number $\frac{p}{q}$ in canonical form: $q > 0$ and $\gcd(|p|, q) = 1$.
 

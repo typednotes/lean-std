@@ -2,7 +2,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 echo "Cross-check: Either"
-LEAN=$(lake exe lean-std 2>/dev/null)
+LEAN=$(lake exe hale 2>/dev/null)
 pass=0; fail=0
 if echo "$LEAN" | grep -q "map (+1) on Right 42:.*43"; then
   echo "  PASS: map"

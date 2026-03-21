@@ -1,5 +1,5 @@
 # Ord
-**Lean:** `LeanStd.Base.Ord` | **Haskell:** `Data.Ord`
+**Lean:** `Hale.Base.Ord` | **Haskell:** `Data.Ord`
 
 ## Overview
 Ordering utilities. `Down` reverses the comparison order. `comparing` lifts comparisons through projections. `clamp` returns a proof-carrying bounded value.

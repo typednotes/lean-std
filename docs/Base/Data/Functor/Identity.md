@@ -1,5 +1,5 @@
 # Identity
-**Lean:** `LeanStd.Base.Identity` | **Haskell:** `Data.Functor.Identity`
+**Lean:** `Hale.Base.Identity` | **Haskell:** `Data.Functor.Identity`
 
 ## Overview
 Identity functor/monad — trivial wrapper. Useful as a base case for monad transformer stacks and as a witness that a computation is pure.

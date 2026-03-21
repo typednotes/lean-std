@@ -1,5 +1,5 @@
 # Complex
-**Lean:** `LeanStd.Base.Complex` | **Haskell:** `Data.Complex`
+**Lean:** `Hale.Base.Complex` | **Haskell:** `Data.Complex`
 
 ## Overview
 Complex numbers parameterized by coefficient type. Supports arithmetic operations and conjugation.

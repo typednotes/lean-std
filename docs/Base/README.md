@@ -1,4 +1,4 @@
-# LeanStd.Base — Haskell `base` for Lean 4
+# Hale.Base — Haskell `base` for Lean 4
 
 Re-exports all Base sub-modules organized by phase.
 
