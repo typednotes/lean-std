@@ -1,0 +1,128 @@
+/-
+  Hale.Warp.Network.Wai.Handler.Warp.Response — HTTP response rendering
+
+  Ports Haskell's Warp response sender. Renders status lines, headers, and
+  dispatches on the `Response` type to send the appropriate body.
+
+  ## Design
+
+  For `.responseBuilder`: builds the entire response as a single ByteArray
+  and sends it in one call (efficient for small responses).
+
+  For `.responseFile`: sends status + headers, then delegates to `Network.Sendfile`
+  for efficient file transfer.
+
+  For `.responseStream`: sends status + headers with chunked transfer encoding,
+  then invokes the streaming body callback.
+
+  ## Guarantees
+
+  - `sendResponse` returns `ResponseReceived`, ensuring exactly one response is sent
+  - Auto-added headers (`Date`, `Server`, `Content-Length`, `Transfer-Encoding`)
+    do not overwrite user-provided headers
+-/
+
+import Hale.WAI
+import Hale.HttpTypes
+import Hale.Network
+import Hale.SimpleSendfile
+import Hale.Warp.Network.Wai.Handler.Warp.Settings
+
+namespace Network.Wai.Handler.Warp
+
+open Network.HTTP.Types
+open Network.Wai
+open Network.Socket
+open Network.Socket.BS
+open Network.Sendfile
+
+/-- Render an HTTP status line.
+    $$\text{renderStatusLine}(\text{ver}, \text{st}) = \text{"HTTP/x.y code message\\r\\n"}$$ -/
+def renderStatusLine (version : HttpVersion) (status : Status) : String :=
+  s!"{version} {status.statusCode} {status.statusMessage}\r\n"
+
+/-- Render a list of headers as a string, each terminated by CRLF.
+    $$\text{renderHeaders}(hs) = \prod_{(n,v) \in hs} n \cdot \text{": "} \cdot v \cdot \text{"\\r\\n"}$$ -/
+def renderHeaders (headers : ResponseHeaders) : String :=
+  let lines := headers.map fun (name, value) =>
+    s!"{name}: {value}\r\n"
+  String.join lines
+
+/-- Check if a header name is present in a header list. -/
+private def hasHeader (name : HeaderName) (headers : ResponseHeaders) : Bool :=
+  headers.any fun (n, _) => n == name
+
+/-- Add automatic headers based on settings and response type.
+    Does not overwrite user-provided headers. -/
+private def addAutoHeaders (settings : Settings) (extraHeaders : ResponseHeaders)
+    (userHeaders : ResponseHeaders) : ResponseHeaders :=
+  let headers := userHeaders
+  -- Add Server header if configured and not already present
+  let headers :=
+    if settings.settingsAddServerHeader && !hasHeader hServer headers then
+      (hServer, settings.settingsServerName) :: headers
+    else headers
+  -- Add extra headers (Content-Length, Transfer-Encoding) if not present
+  let headers := extraHeaders.foldl (fun acc (n, v) =>
+    if hasHeader n acc then acc else (n, v) :: acc) headers
+  headers
+
+/-- Send a full HTTP response over a socket.
+    Dispatches on the response type (builder, file, stream, raw).
+    $$\text{sendResponse} : \text{Socket} \to \text{Settings} \to \text{Request} \to \text{Response} \to \text{IO}(\text{ResponseReceived})$$ -/
+def sendResponse (sock : Socket) (settings : Settings) (_req : Request)
+    (resp : Response) : IO ResponseReceived := do
+  match resp with
+  | .responseBuilder status userHeaders body =>
+    -- Add Content-Length for builder responses
+    let extraHeaders : ResponseHeaders :=
+      [(hContentLength, toString body.size)]
+    let allHeaders := addAutoHeaders settings extraHeaders userHeaders
+    let statusLine := renderStatusLine _req.httpVersion status
+    let headerStr := renderHeaders allHeaders
+    let headBytes := (statusLine ++ headerStr ++ "\r\n").toUTF8
+    -- Send headers + body together
+    sendAll sock (headBytes ++ body)
+    pure ResponseReceived.done
+
+  | .responseFile status userHeaders path part =>
+    -- For file responses, we don't know the size in advance unless we stat
+    -- Send headers first, then the file via sendFile
+    let allHeaders := addAutoHeaders settings [] userHeaders
+    let statusLine := renderStatusLine _req.httpVersion status
+    let headerStr := renderHeaders allHeaders
+    let headBytes := (statusLine ++ headerStr ++ "\r\n").toUTF8
+    sendAll sock headBytes
+    Network.Sendfile.sendFile sock path part
+    pure ResponseReceived.done
+
+  | .responseStream status userHeaders body =>
+    -- Use chunked transfer encoding for streaming
+    let extraHeaders : ResponseHeaders :=
+      [(hTransferEncoding, "chunked")]
+    let allHeaders := addAutoHeaders settings extraHeaders userHeaders
+    let statusLine := renderStatusLine _req.httpVersion status
+    let headerStr := renderHeaders allHeaders
+    let headBytes := (statusLine ++ headerStr ++ "\r\n").toUTF8
+    sendAll sock headBytes
+    -- The streaming body gets a "write chunk" and a "flush" callback
+    let writeChunk : ByteArray → IO Unit := fun chunk => do
+      if chunk.size > 0 then
+        -- Send chunk size in hex, then CRLF, then data, then CRLF
+        let sizeStr := String.ofList (Nat.toDigits 16 chunk.size)
+        let frame := (sizeStr ++ "\r\n").toUTF8 ++ chunk ++ "\r\n".toUTF8
+        sendAll sock frame
+    let flush : IO Unit := pure ()  -- No-op flush for now
+    body writeChunk flush
+    -- Send terminating chunk
+    sendAll sock "0\r\n\r\n".toUTF8
+    pure ResponseReceived.done
+
+  | .responseRaw rawAction _fallback =>
+    -- For raw responses, hand off socket I/O directly
+    let recvAction : IO ByteArray := Network.Socket.recv sock 4096
+    let sendAction : ByteArray → IO Unit := sendAll sock
+    rawAction recvAction sendAction
+    pure ResponseReceived.done
+
+end Network.Wai.Handler.Warp

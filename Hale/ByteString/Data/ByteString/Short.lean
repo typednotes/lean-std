@@ -89,10 +89,15 @@ instance [ToString ShortByteString] : ToString ShortByteString where
 
 -- ── Proofs ──────────────────────────────────────
 
-/-- `fromShort (toShort bs)` has the same length as `bs`. -/
+/-- `fromShort (toShort bs)` has the same length as `bs`.
+
+    Follows from `ByteArray.size_extract` and the slice bounds invariant. -/
 theorem length_toShort (bs : ByteString) :
     (toShort bs).length = bs.len := by
-  sorry
+  unfold toShort length
+  simp only [ByteArray.size_extract]
+  have hv := bs.valid
+  omega
 
 end ShortByteString
 end Data.ByteString

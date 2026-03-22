@@ -385,30 +385,45 @@ def span (p : UInt8 → Bool) (bs : ByteString) : ByteString × ByteString :=
 def «break» (p : UInt8 → Bool) (bs : ByteString) : ByteString × ByteString :=
   bs.span (fun w => !p w)
 
+/-- Span equal elements from the front of a list, collecting them into an accumulator.
+    Returns `(group_acc, remaining)` where `remaining` is a suffix of the input list.
+    $$\text{remaining.length} \le \text{ws.length}$$ -/
+private def spanEqList (eq : UInt8 → UInt8 → Bool) (prev : UInt8) (ws : List UInt8)
+    (acc : List UInt8) : List UInt8 × List UInt8 :=
+  match ws with
+  | [] => (acc, [])
+  | w :: rest =>
+    if eq prev w then spanEqList eq w rest (w :: acc)
+    else (acc, w :: rest)
+
+/-- `spanEqList` always returns a remainder no longer than the input.
+    Proved by structural induction. -/
+private theorem spanEqList_length_le (eq : UInt8 → UInt8 → Bool) (prev : UInt8)
+    (ws : List UInt8) (acc : List UInt8) :
+    (spanEqList eq prev ws acc).2.length ≤ ws.length := by
+  induction ws generalizing prev acc with
+  | nil => simp [spanEqList]
+  | cons w rest ih =>
+    simp only [spanEqList]
+    split
+    · exact Nat.le_succ_of_le (ih w (w :: acc))
+    · simp
+
 /-- Group consecutive bytes by an equivalence relation.
     Uses the `unpack`/`pack` approach for simplicity. -/
 def groupBy (eq : UInt8 → UInt8 → Bool) (bs : ByteString) : List ByteString :=
   if bs.null then []
-  else
-    let bytes := bs.unpack
-    go bytes []
+  else go (bs.unpack) []
 where
   go (ws : List UInt8) (acc : List ByteString) : List ByteString :=
     match ws with
     | [] => acc.reverse
     | w :: rest =>
-      let (grp, remaining) := spanEq w rest [w]
-      go remaining (pack grp.reverse :: acc)
+      let result := spanEqList eq w rest [w]
+      go result.2 (pack result.1.reverse :: acc)
     termination_by ws.length
     decreasing_by
-      simp_all
-      sorry -- groupLen ≥ 1 so remaining.length < ws.length
-  spanEq (prev : UInt8) (ws : List UInt8) (acc : List UInt8) : List UInt8 × List UInt8 :=
-    match ws with
-    | [] => (acc, [])
-    | w :: rest =>
-      if eq prev w then spanEq w rest (w :: acc)
-      else (acc, w :: rest)
+      exact Nat.lt_succ_of_le (spanEqList_length_le eq w rest [w])
 
 /-- Group consecutive equal bytes.
     $$\text{group}([a,a,b,b,b,c]) = [[a,a],[b,b,b],[c]]$$ -/

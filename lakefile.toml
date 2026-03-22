@@ -10,15 +10,19 @@ rev = "main"
 
 [[lean_lib]]
 name = "Hale"
+moreLinkArgs = ["ffi/network.o"]
 
 [[lean_exe]]
 name = "hale"
 root = "Main"
+moreLinkArgs = ["ffi/network.o"]
 
 [[lean_lib]]
 name = "Tests"
 globs = ["Tests"]
+moreLinkArgs = ["ffi/network.o"]
 
 [[lean_exe]]
 name = "hale-tests"
 root = "Tests.Main"
+moreLinkArgs = ["ffi/network.o"]

@@ -2,3 +2,26 @@
 -- Import modules here that should be built as part of the library.
 import Hale.Base
 import Hale.ByteString
+import Hale.CaseInsensitive
+import Hale.UnliftIO
+import Hale.Word8
+import Hale.Vault
+import Hale.Time
+import Hale.STM
+import Hale.Network
+import Hale.HttpTypes
+import Hale.AutoUpdate
+import Hale.IpRoute
+import Hale.HttpDate
+import Hale.BsbHttpChunked
+import Hale.TimeManager
+import Hale.StreamingCommons
+import Hale.SimpleSendfile
+import Hale.UnixCompat
+import Hale.Recv
+import Hale.WAI
+import Hale.Http2
+import Hale.Warp
+import Hale.QUIC
+import Hale.Http3
+import Hale.WarpQUIC

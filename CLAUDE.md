@@ -81,6 +81,179 @@ Reference: https://hackage.haskell.org/package/bytestring
 | `Hale.ByteString.Data.ByteString.Lazy.Char8` | `Data.ByteString.Lazy.Char8` |
 | `Hale.ByteString.Data.ByteString.Builder` | `Data.ByteString.Builder` |
 
+Reference: https://hackage.haskell.org/package/time
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Time.Data.Time.Clock` | `Data.Time.Clock` |
+
+Reference: https://hackage.haskell.org/package/word8
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Word8.Data.Word8` | `Data.Word8` |
+
+Reference: https://hackage.haskell.org/package/case-insensitive
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.CaseInsensitive.Data.CaseInsensitive` | `Data.CaseInsensitive` |
+
+Reference: https://hackage.haskell.org/package/vault
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Vault.Data.Vault` | `Data.Vault.Lazy` |
+
+Reference: https://hackage.haskell.org/package/stm
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.STM.Control.Monad.STM` | `Control.Monad.STM` |
+| `Hale.STM.Control.Concurrent.STM.TVar` | `Control.Concurrent.STM.TVar` |
+| `Hale.STM.Control.Concurrent.STM.TMVar` | `Control.Concurrent.STM.TMVar` |
+| `Hale.STM.Control.Concurrent.STM.TQueue` | `Control.Concurrent.STM.TQueue` |
+
+Reference: https://hackage.haskell.org/package/auto-update
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.AutoUpdate.Control.AutoUpdate` | `Control.AutoUpdate` |
+
+Reference: https://hackage.haskell.org/package/unliftio-core
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.UnliftIO.Control.Monad.IO.Unlift` | `Control.Monad.IO.Unlift` |
+
+Reference: https://hackage.haskell.org/package/network
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Network.Network.Socket.Types` | `Network.Socket` (types) |
+| `Hale.Network.Network.Socket.FFI` | `Network.Socket` (FFI) |
+| `Hale.Network.Network.Socket` | `Network.Socket` |
+| `Hale.Network.Network.Socket.ByteString` | `Network.Socket.ByteString` |
+
+Reference: https://hackage.haskell.org/package/iproute
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.IpRoute.Data.IP` | `Data.IP` |
+
+Reference: https://hackage.haskell.org/package/recv
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Recv.Network.Socket.Recv` | `Network.Socket.Recv` |
+
+Reference: https://hackage.haskell.org/package/http-types
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.HttpTypes.Network.HTTP.Types.Version` | `Network.HTTP.Types.Version` |
+| `Hale.HttpTypes.Network.HTTP.Types.Method` | `Network.HTTP.Types.Method` |
+| `Hale.HttpTypes.Network.HTTP.Types.Status` | `Network.HTTP.Types.Status` |
+| `Hale.HttpTypes.Network.HTTP.Types.Header` | `Network.HTTP.Types.Header` |
+| `Hale.HttpTypes.Network.HTTP.Types.URI` | `Network.HTTP.Types.URI` |
+
+Reference: https://hackage.haskell.org/package/http-date
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.HttpDate.Network.HTTP.Date` | `Network.HTTP.Date` |
+
+Reference: https://hackage.haskell.org/package/bsb-http-chunked
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.BsbHttpChunked.Network.HTTP.Chunked` | `Network.HTTP.Chunked` |
+
+Reference: https://hackage.haskell.org/package/time-manager
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.TimeManager.System.TimeManager` | `System.TimeManager` |
+
+Reference: https://hackage.haskell.org/package/streaming-commons
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.StreamingCommons.Data.Streaming.Network` | `Data.Streaming.Network` |
+
+Reference: https://hackage.haskell.org/package/simple-sendfile
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.SimpleSendfile.Network.Sendfile` | `Network.Sendfile` |
+
+Reference: https://hackage.haskell.org/package/unix-compat
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.UnixCompat.System.Posix.Compat` | `System.Posix` |
+
+Reference: https://hackage.haskell.org/package/wai
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.WAI.Network.Wai.Internal` | `Network.Wai.Internal` |
+| `Hale.WAI.Network.Wai` | `Network.Wai` |
+
+Reference: https://hackage.haskell.org/package/http2
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Http2.Network.HTTP2.Frame.Types` | `Network.HTTP2.Frame.Types` |
+| `Hale.Http2.Network.HTTP2.Frame.Encode` | `Network.HTTP2.Frame.Encode` |
+| `Hale.Http2.Network.HTTP2.Frame.Decode` | `Network.HTTP2.Frame.Decode` |
+| `Hale.Http2.Network.HTTP2.HPACK.Table` | `Network.HTTP2.HPACK.Table` |
+| `Hale.Http2.Network.HTTP2.HPACK.Huffman` | `Network.HTTP2.HPACK.Huffman` |
+| `Hale.Http2.Network.HTTP2.HPACK.Encode` | `Network.HTTP2.HPACK.Encode` |
+| `Hale.Http2.Network.HTTP2.HPACK.Decode` | `Network.HTTP2.HPACK.Decode` |
+| `Hale.Http2.Network.HTTP2.Types` | `Network.HTTP2.Types` |
+| `Hale.Http2.Network.HTTP2.Stream` | `Network.HTTP2.Stream` |
+| `Hale.Http2.Network.HTTP2.FlowControl` | `Network.HTTP2.FlowControl` |
+| `Hale.Http2.Network.HTTP2.Server` | `Network.HTTP2.Server` |
+
+Reference: https://hackage.haskell.org/package/warp
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Warp.Network.Wai.Handler.Warp.Settings` | `Network.Wai.Handler.Warp.Settings` |
+| `Hale.Warp.Network.Wai.Handler.Warp.Request` | `Network.Wai.Handler.Warp.Request` |
+| `Hale.Warp.Network.Wai.Handler.Warp.Response` | `Network.Wai.Handler.Warp.Response` |
+| `Hale.Warp.Network.Wai.Handler.Warp.Run` | `Network.Wai.Handler.Warp.Run` |
+| `Hale.Warp.Network.Wai.Handler.Warp` | `Network.Wai.Handler.Warp` |
+
+Reference: https://hackage.haskell.org/package/quic
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.QUIC.Network.QUIC.Types` | `Network.QUIC` (types) |
+| `Hale.QUIC.Network.QUIC.Config` | `Network.QUIC` (config) |
+| `Hale.QUIC.Network.QUIC.Connection` | `Network.QUIC` (connection) |
+| `Hale.QUIC.Network.QUIC.Stream` | `Network.QUIC` (streams) |
+| `Hale.QUIC.Network.QUIC.Server` | `Network.QUIC.Server` |
+| `Hale.QUIC.Network.QUIC.Client` | `Network.QUIC.Client` |
+
+Reference: https://hackage.haskell.org/package/http3
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.Http3.Network.HTTP3.Frame` | `Network.HTTP3` (frames) |
+| `Hale.Http3.Network.HTTP3.Error` | `Network.HTTP3` (errors) |
+| `Hale.Http3.Network.HTTP3.QPACK.Table` | `Network.QPACK` (tables) |
+| `Hale.Http3.Network.HTTP3.QPACK.Encode` | `Network.QPACK` (encode) |
+| `Hale.Http3.Network.HTTP3.QPACK.Decode` | `Network.QPACK` (decode) |
+| `Hale.Http3.Network.HTTP3.Server` | `Network.HTTP3` (server) |
+
+Reference: https://hackage.haskell.org/package/warp-quic
+
+| Lean Module | Haskell Module |
+|---|---|
+| `Hale.WarpQUIC.Network.Wai.Handler.WarpQUIC` | `Network.Wai.Handler.WarpQUIC` |
+
 ## Folder Organization Policy
 
 The `Hale` project ports multiple Haskell libraries. Each Haskell library gets its own **top-level folder** named after the library (Lean naming convention). Within that folder, the **subfolder path mirrors the Haskell module path** exactly.
@@ -168,6 +341,8 @@ When porting a Haskell library:
 2. **Port the value-add:** Focus on typed invariants, O(1) slicing, algebraic proofs, and API surface that Lean lacks.
 3. **Port transitive dependencies first.** If the Haskell library depends on another unported Haskell library, port that dependency before proceeding.
 4. **Lean stdlib preference:** When Lean's stdlib already provides equivalent functionality, use it as the backing implementation and provide Haskell-compatible naming on top.
+5. **Cross-platform C FFI / glibc wrappers:** When porting libraries that wrap OS/glibc facilities (sockets, file I/O, signals, etc.), get inspiration from **both** Haskell's implementation and **Lean's standard library** (`Init.System`, `Std.Internal`). Use `#ifdef` guards for platform-specific code (macOS/kqueue, Linux/epoll). Target macOS and Linux first; Windows support can be added later. Always return proper `IO.Error` from C FFI — never crash or segfault.
+6. **FFI preferred for glibc, implementation preferred otherwise:** C FFI should be the default approach for wrapping glibc/OS system calls (sockets, file descriptors, signals, process management, etc.) — these are inherently C APIs and FFI gives the best fidelity. For everything else (protocol logic, data structures, algorithms, type-level guarantees), prefer a native Lean implementation. This gives us proofs, type safety, and platform independence where it matters most.
 
 ## Haskell Cross-Verification
 
