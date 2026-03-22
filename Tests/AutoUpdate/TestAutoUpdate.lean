@@ -22,12 +22,14 @@ def tests : IO (List TestResult) := do
         counter.set (n + 1)
         pure (n + 1)
     }
-  let getter ← mkAutoUpdate settings
+  let au ← mkAutoUpdate settings
   -- Initial value should be 1 (eagerly computed)
-  let v0 ← getter
+  let v0 ← au.get
   -- Wait for a few updates
   IO.sleep 200
-  let v1 ← getter
+  let v1 ← au.get
+  -- Stop the background task so the test binary can exit cleanly
+  au.stop
   pure [
     checkEq "initial value" 1 v0
   , check "value updated" (v1 > v0)

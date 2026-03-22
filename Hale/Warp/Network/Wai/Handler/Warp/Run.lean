@@ -8,7 +8,9 @@
 
   - `runSettings` is the main entry point: creates a listening socket,
     runs `settingsBeforeMainLoop`, and enters the accept loop.
-  - `acceptLoop` accepts connections and spawns `IO.asTask` for each.
+  - `acceptLoop` accepts connections and spawns `IO.asTask` with `.dedicated`
+    priority for each (dedicated OS thread avoids thread pool starvation when
+    connections block on socket I/O).
   - `runConnection` handles a single connection: parses the request,
     invokes the application, and sends the response.
 
@@ -59,8 +61,9 @@ def runConnection (clientSock : Socket) (remoteAddr : SockAddr)
 partial def acceptLoop (serverSock : Socket) (settings : Settings)
     (app : Application) : IO Unit := do
   let (clientSock, remoteAddr) ← Network.Socket.accept serverSock
-  -- Spawn connection handler as a background task
-  let _task ← IO.asTask (runConnection clientSock remoteAddr settings app)
+  -- Spawn connection handler on a dedicated OS thread (avoids pool starvation
+  -- when the handler blocks on socket I/O)
+  let _task ← IO.asTask (prio := .dedicated) (runConnection clientSock remoteAddr settings app)
   -- Continue accepting
   acceptLoop serverSock settings app
 

@@ -83,11 +83,11 @@ def tests : IO (List TestResult) := do
     let mv ← MVar.newEmpty Nat
     let sum ← IO.mkRef 0
     -- Producer: put 1..100
-    let producer ← IO.asTask do
+    let producer ← IO.asTask (prio := .dedicated) do
       for i in List.range 100 do
         mv.putSync (i + 1)
     -- Consumer: take 100 values and sum
-    let consumer ← IO.asTask do
+    let consumer ← IO.asTask (prio := .dedicated) do
       for _ in List.range 100 do
         let v ← mv.takeSync
         sum.modify (· + v)

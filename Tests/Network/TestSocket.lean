@@ -34,7 +34,7 @@ def tests : IO (List TestResult) := do
   listen server 5
 
   -- Spawn client in background task
-  let clientTask ← IO.asTask do
+  let clientTask ← IO.asTask (prio := .dedicated) do
     let client ← socket .inet .stream
     connect client ⟨"127.0.0.1", 9876⟩
     let _ ← Network.Socket.send client "hello".toUTF8

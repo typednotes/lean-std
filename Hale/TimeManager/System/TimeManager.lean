@@ -6,8 +6,13 @@
 
   ## Design
 
-  Mirrors Haskell's `System.TimeManager`. Uses `IO.asTask` for the
-  background sweep loop and `IO.Ref` for per-handle state.
+  Mirrors Haskell's `System.TimeManager`. Uses `IO.asTask` with `.dedicated`
+  priority for the background sweep loop (dedicated OS thread, avoiding
+  thread pool starvation) and `IO.Ref` for per-handle state.
+
+  The sweep task is governed by a `Std.CancellationToken` so `Manager.stop`
+  terminates the background thread promptly — this prevents compiled binaries
+  from hanging on exit.
 
   ## Guarantees
 
@@ -15,9 +20,11 @@
   - `cancel` prevents future timeout firing
   - Sweep runs at configurable intervals
   - Thread-safe via `IO.Ref` atomicity
+  - `stop` terminates the background sweep cooperatively
 -/
 
 import Hale.Time
+import Std.Sync.CancellationToken
 
 namespace System.TimeManager
 
@@ -41,36 +48,37 @@ structure Manager where
   timeoutUs : Nat
   /-- All registered handles. -/
   handles : IO.Ref (Array Handle)
-  /-- Whether the manager is running. -/
-  running : IO.Ref Bool
+  /-- Cancellation token for stopping the background sweep. -/
+  token : Std.CancellationToken
 
 /-- Initialize a new timeout manager with the given timeout (microseconds).
-    Starts a background sweep task.
+    Starts a background sweep task on a dedicated OS thread.
     $$\text{initialize} : \mathbb{N} \to \text{IO}(\text{Manager})$$ -/
 def Manager.new (timeoutUs : Nat := 30000000) : IO Manager := do
   let handles ← IO.mkRef (#[] : Array Handle)
-  let running ← IO.mkRef true
-  let mgr : Manager := ⟨timeoutUs, handles, running⟩
-  -- Launch sweep loop
+  let token ← Std.CancellationToken.new
+  let mgr : Manager := ⟨timeoutUs, handles, token⟩
+  -- Launch sweep loop on a dedicated OS thread
   let _task ← IO.asTask (prio := .dedicated) do
-    while (← running.get) do
+    while !(← token.isCancelled) do
       IO.sleep (timeoutUs / 1000).toUInt32  -- convert μs to ms
-      let now ← IO.monoNanosNow
-      let hs ← handles.get
-      for h in hs do
-        let st ← h.state.get
-        match st with
-        | .active deadline =>
-          if now > deadline then
-            h.state.set .canceled
-            try h.onTimeout catch _ => pure ()
-        | _ => pure ()
-      -- Compact: remove canceled handles
-      let hs' ← handles.get
-      let active ← hs'.toList.filterM fun h => do
-        let st ← h.state.get
-        pure (st != .canceled)
-      handles.set active.toArray
+      unless (← token.isCancelled) do
+        let now ← IO.monoNanosNow
+        let hs ← handles.get
+        for h in hs do
+          let st ← h.state.get
+          match st with
+          | .active deadline =>
+            if now > deadline then
+              h.state.set .canceled
+              try h.onTimeout catch _ => pure ()
+          | _ => pure ()
+        -- Compact: remove canceled handles
+        let hs' ← handles.get
+        let active ← hs'.toList.filterM fun h => do
+          let st ← h.state.get
+          pure (st != .canceled)
+        handles.set active.toArray
   pure mgr
 
 /-- Register a new connection with the manager. Returns a handle for
@@ -84,9 +92,10 @@ def Manager.register (mgr : Manager) (onTimeout : IO Unit) : IO Handle := do
   mgr.handles.modify (·.push handle)
   pure handle
 
-/-- Stop the manager's background sweep. -/
+/-- Stop the manager's background sweep. The background task will exit
+    after the current sleep interval completes. -/
 def Manager.stop (mgr : Manager) : IO Unit :=
-  mgr.running.set false
+  mgr.token.cancel .cancel
 
 /-- Reset the timeout for this handle (called on activity).
     $$\text{tickle} : \text{Handle} \to \text{Manager} \to \text{IO}(\text{Unit})$$ -/

@@ -21,7 +21,7 @@ def tests : IO (List TestResult) := do
   results := results ++ [← checkIO "QSem(1) mutual exclusion" do
     let sem ← QSem.new 1
     let counter ← IO.mkRef 0
-    let tasks ← (List.range 10).mapM fun _ => IO.asTask do
+    let tasks ← (List.range 10).mapM fun _ => IO.asTask (prio := .dedicated) do
       sem.withSem do
         let v ← counter.get
         IO.sleep 1
@@ -35,7 +35,7 @@ def tests : IO (List TestResult) := do
   results := results ++ [← checkIO "QSem(0) blocks then unblocks" do
     let sem ← QSem.new 0
     let flag ← IO.mkRef false
-    let _ ← IO.asTask do
+    let _ ← IO.asTask (prio := .dedicated) do
       IO.sleep 10
       sem.signal
     IO.wait (← sem.wait)

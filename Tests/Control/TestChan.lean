@@ -49,11 +49,11 @@ def tests : IO (List TestResult) := do
   results := results ++ [← checkIO "Chan concurrent producer-consumer" do
     let ch ← Chan.new Nat
     let n := 100
-    let producer ← IO.asTask do
+    let producer ← IO.asTask (prio := .dedicated) do
       for i in List.range n do
         ch.write (i + 1)
     let sum ← IO.mkRef 0
-    let consumer ← IO.asTask do
+    let consumer ← IO.asTask (prio := .dedicated) do
       for _ in List.range n do
         let v ← IO.wait (← ch.read)
         sum.modify (· + v)

@@ -197,7 +197,7 @@ def loopbackTest : IO (List TestResult) := do
     respond (responseLBS status200 [(Data.CI.mk' "X-Test", "yes")] "Hello Warp!")
 
   -- Start server in background task
-  let serverTask ← IO.asTask do
+  let serverTask ← IO.asTask (prio := .dedicated) do
     let settings : Settings := {
       settingsPort := port
       settingsBeforeMainLoop := startedRef.set true

@@ -58,7 +58,7 @@ def runTCPServer (port : UInt16) (handler : AppData → IO Unit) : IO Unit := do
     while true do
       let (client, addr) ← acceptSafe server
       let appData := mkAppData client addr
-      let _task ← IO.asTask do
+      let _task ← IO.asTask (prio := .dedicated) do
         try handler appData catch _ => pure ()
         appData.appClose
   finally

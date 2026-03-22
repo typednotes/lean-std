@@ -9,9 +9,11 @@
   * **Cancellation is cooperative.**  `killThread` sets a `CancellationToken`;
     a CPU-bound thread that never checks the token will not be interrupted.
     GHC uses asynchronous exceptions which can interrupt at (almost) any point.
-  * **`IO.asTask`** schedules work on Lean's thread pool, not as a 1:1 OS
-    thread.  Combined with promise-based MVars, this allows millions of
-    concurrent "threads".
+  * **`IO.asTask (prio := .dedicated)`** spawns each forked thread on its
+    own dedicated OS thread, avoiding thread pool starvation when threads
+    block on I/O or `IO.wait`.  This trades the lightweight scheduling of
+    Lean's thread pool for safety — a blocked dedicated thread cannot starve
+    other tasks.
 
   ## Type-level guarantees
 
@@ -84,7 +86,7 @@ cancellation. -/
 def forkIO (action : IO Unit) : IO ThreadId := do
   let tid ← freshThreadId
   let token ← Std.CancellationToken.new
-  let task ← IO.asTask (prio := .default) do
+  let task ← IO.asTask (prio := .dedicated) do
     action
   pure { id := tid, task := task, cancelToken := token }
 
@@ -97,7 +99,7 @@ Modelled after Haskell's `forkFinally`. -/
 def forkFinally {α : Type} (action : IO α) (finally_ : Except IO.Error α → IO Unit) : IO ThreadId := do
   let tid ← freshThreadId
   let token ← Std.CancellationToken.new
-  let task ← IO.asTask (prio := .default) do
+  let task ← IO.asTask (prio := .dedicated) do
     try
       let a ← action
       finally_ (.ok a)

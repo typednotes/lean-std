@@ -186,23 +186,31 @@ def main : IO UInt32 := do
   let runIO (name : String) (mkTests : Unit → IO (List TestResult)) : IO Nat := do
     let results ← mkTests ()
     runTests name results
-  -- Concurrency tests (MVar, Chan, QSem, QSemN, Concurrent, Unique) use IO.Promise
-  -- which deadlocks in the compiled binary. They work correctly in the interpreter
-  -- (lake env lean --run). Skipped pending investigation of IO.Promise in compiled mode.
+  -- IO tests that don't use async primitives — safe to run in compiled mode
+  totalFailures := totalFailures + (← runIO "IORef"       fun () => TestIORef.tests)
+  totalFailures := totalFailures + (← runIO "Unique"      fun () => TestUnique.tests)
+  totalFailures := totalFailures + (← runIO "Exception"   fun () => TestException.tests)
+  totalFailures := totalFailures + (← runIO "Vault"       fun () => TestVault.tests)
+  totalFailures := totalFailures + (← runIO "UnliftIO"    fun () => TestUnliftIO.tests)
+  totalFailures := totalFailures + (← runIO "Clock"       fun () => TestClock.tests)
+  totalFailures := totalFailures + (← runIO "STM"         fun () => TestSTM.tests)
+  totalFailures := totalFailures + (← runIO "Sendfile"    fun () => TestSendfile.tests)
+  totalFailures := totalFailures + (← runIO "UnixCompat"  fun () => TestCompat.tests)
+  totalFailures := totalFailures + (← runIO "Environment" fun () => TestEnvironment.tests)
+  totalFailures := totalFailures + (← runIO "AutoUpdate"  fun () => TestAutoUpdate.tests)
+  totalFailures := totalFailures + (← runIO "TimeManager" fun () => TestTimeManager.tests)
+  -- Concurrency + network IO tests — use dedicated OS threads to avoid pool starvation.
+  -- These tests call IO.wait on tasks spawned with IO.asTask (.dedicated).
+  -- Currently segfault in compiled mode (exit 139) — needs further investigation.
+  -- All pass in interpreter: lake env lean --run <test_file>
   -- totalFailures := totalFailures + (← runIO "MVar"       fun () => TestMVar.tests)
   -- totalFailures := totalFailures + (← runIO "Chan"       fun () => TestChan.tests)
   -- totalFailures := totalFailures + (← runIO "QSem"       fun () => TestQSem.tests)
   -- totalFailures := totalFailures + (← runIO "QSemN"      fun () => TestQSemN.tests)
   -- totalFailures := totalFailures + (← runIO "Concurrent" fun () => TestConcurrent.tests)
-  -- totalFailures := totalFailures + (← runIO "Unique"     fun () => TestUnique.tests)
-  -- IO tests hang in compiled binary due to IO.asTask deadlock in compiled mode.
-  -- All IO tests pass individually via: lake env lean --run <test_file>
-  -- This is a Lean runtime issue with task scheduling in statically linked executables.
-  -- Uncomment to run (they will hang):
   -- totalFailures := totalFailures + (← runIO "Socket"      fun () => TestSocket.tests)
   -- totalFailures := totalFailures + (← runIO "StreamingNetwork" fun () => TestStreamingNetwork.tests)
   -- totalFailures := totalFailures + (← runIO "Warp.IO"     fun () => TestWarp.ioTests)
-  pure ()
 
   IO.println ""
   if totalFailures == 0 then

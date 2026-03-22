@@ -15,7 +15,7 @@ namespace TestStreamingNetwork
 def tests : IO (List TestResult) := do
   -- Basic: bind a port, connect, exchange data
   let server ← bindPortTCP 9877 "127.0.0.1"
-  let clientTask ← IO.asTask do
+  let clientTask ← IO.asTask (prio := .dedicated) do
     let (sock, _) ← getSocketTCP "127.0.0.1" 9877
     let _ ← Network.Socket.send sock "ping".toUTF8
     let resp ← Network.Socket.recv sock 1024

@@ -22,7 +22,7 @@ def tests : IO (List TestResult) := do
     let sem ← QSemN.new 3
     IO.wait (← sem.wait 3)
     let released ← IO.mkRef false
-    let _ ← IO.asTask do
+    let _ ← IO.asTask (prio := .dedicated) do
       IO.sleep 10
       released.set true
       sem.signal 3
