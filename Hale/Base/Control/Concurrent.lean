@@ -4,16 +4,21 @@
   Provides `ThreadId`, `forkIO`, `forkFinally`, `threadDelay`, `yield`, and
   `killThread`, modelled after Haskell's `Control.Concurrent`.
 
+  ## Design — Green threads via M:N scheduling
+
+  `forkIO` enqueues an action on a shared run queue (O(1), heap-only).
+  A small fixed pool of OS worker threads dequeues and executes green threads,
+  inspired by GHC's capability model.
+
   ## Differences from GHC
 
   * **Cancellation is cooperative.**  `killThread` sets a `CancellationToken`;
     a CPU-bound thread that never checks the token will not be interrupted.
     GHC uses asynchronous exceptions which can interrupt at (almost) any point.
-  * **`IO.asTask (prio := .dedicated)`** spawns each forked thread on its
-    own dedicated OS thread, avoiding thread pool starvation when threads
-    block on I/O or `IO.wait`.  This trades the lightweight scheduling of
-    Lean's thread pool for safety — a blocked dedicated thread cannot starve
-    other tasks.
+  * **No preemption.**  Green threads run to completion or until they
+    voluntarily yield/block.  GHC preempts via timer interrupts.
+  * **No stack switching.**  A green thread that calls `IO.wait` blocks its
+    worker OS thread (same as a GHC bound thread blocking a capability).
 
   ## Type-level guarantees
 
@@ -22,6 +27,7 @@
 -/
 
 import Hale.Base.Control.Concurrent.MVar
+import Hale.Base.Control.Concurrent.Scheduler
 import Std.Sync.CancellationToken
 
 namespace Control.Concurrent
@@ -72,40 +78,44 @@ private def freshThreadId : BaseIO PosNat :=
 
 /-! ### Forking -/
 
-/-- Fork a new lightweight thread.  The action runs on Lean's thread pool.
+/-- Fork a new green thread.  The action is submitted to Lean's thread pool
+via `IO.asTask` (default priority) — O(1), no dedicated OS thread spawned.
+Millions of green threads can be active simultaneously.
 
 $$\text{forkIO} : \text{IO}\ \text{Unit} \to \text{IO}\ \text{ThreadId}$$
 
 ```
 let tid ← forkIO do
-  IO.println "hello from thread"
+  IO.println "hello from green thread"
 ```
 
 The returned `ThreadId` can be used with `killThread` for cooperative
-cancellation. -/
+cancellation, or with `waitThread` to join. -/
 def forkIO (action : IO Unit) : IO ThreadId := do
   let tid ← freshThreadId
   let token ← Std.CancellationToken.new
-  let task ← IO.asTask (prio := .dedicated) do
-    action
+  let schedTid : Scheduler.PosNat := ⟨tid.val, tid.property⟩
+  let thread : Scheduler.GreenThread := {
+    id := schedTid
+    action := action
+    token := token
+  }
+  let task ← Scheduler.schedule thread
   pure { id := tid, task := task, cancelToken := token }
 
-/-- Fork a thread that calls `finally` with the outcome, whether the action
-succeeded or threw.
+/-- Fork a green thread that calls `finally` with the outcome, whether the
+action succeeded or threw.
 
 $$\text{forkFinally} : \text{IO}\ \alpha \to (\text{Except}\ \text{IO.Error}\ \alpha \to \text{IO}\ \text{Unit}) \to \text{IO}\ \text{ThreadId}$$
 
 Modelled after Haskell's `forkFinally`. -/
 def forkFinally {α : Type} (action : IO α) (finally_ : Except IO.Error α → IO Unit) : IO ThreadId := do
-  let tid ← freshThreadId
-  let token ← Std.CancellationToken.new
-  let task ← IO.asTask (prio := .dedicated) do
+  forkIO do
     try
       let a ← action
       finally_ (.ok a)
     catch e =>
       finally_ (.error e)
-  pure { id := tid, task := task, cancelToken := token }
 
 /-! ### Thread control -/
 

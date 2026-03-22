@@ -55,6 +55,7 @@ import Hale.Base.Control.Arrow
 import Hale.Base.Control.Exception
 
 -- Concurrency
+import Hale.Base.Control.Concurrent.Scheduler
 import Hale.Base.Control.Concurrent
 import Hale.Base.Control.Concurrent.MVar
 import Hale.Base.Control.Concurrent.Chan

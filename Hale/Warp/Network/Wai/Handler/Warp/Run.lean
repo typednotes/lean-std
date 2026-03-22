@@ -8,9 +8,8 @@
 
   - `runSettings` is the main entry point: creates a listening socket,
     runs `settingsBeforeMainLoop`, and enters the accept loop.
-  - `acceptLoop` accepts connections and spawns `IO.asTask` with `.dedicated`
-    priority for each (dedicated OS thread avoids thread pool starvation when
-    connections block on socket I/O).
+  - `acceptLoop` accepts connections and spawns green threads via `forkIO`
+    for each (uses the thread pool, not dedicated OS threads).
   - `runConnection` handles a single connection: parses the request,
     invokes the application, and sends the response.
 
@@ -24,6 +23,7 @@
 import Hale.WAI
 import Hale.HttpTypes
 import Hale.Network
+import Hale.Base.Control.Concurrent
 import Hale.Warp.Network.Wai.Handler.Warp.Settings
 import Hale.Warp.Network.Wai.Handler.Warp.Request
 import Hale.Warp.Network.Wai.Handler.Warp.Response
@@ -61,9 +61,8 @@ def runConnection (clientSock : Socket) (remoteAddr : SockAddr)
 partial def acceptLoop (serverSock : Socket) (settings : Settings)
     (app : Application) : IO Unit := do
   let (clientSock, remoteAddr) ← Network.Socket.accept serverSock
-  -- Spawn connection handler on a dedicated OS thread (avoids pool starvation
-  -- when the handler blocks on socket I/O)
-  let _task ← IO.asTask (prio := .dedicated) (runConnection clientSock remoteAddr settings app)
+  -- Spawn connection handler as a green thread on the scheduler
+  let _tid ← Control.Concurrent.forkIO (runConnection clientSock remoteAddr settings app)
   -- Continue accepting
   acceptLoop serverSock settings app
 
