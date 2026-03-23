@@ -22,21 +22,21 @@ structure AppData where
   /-- Close the connection. -/
   appClose : IO Unit
 
-/-- Bind a TCP server socket to a port.
-    $$\text{bindPortTCP} : \text{UInt16} \to \text{String} \to \text{IO}(\text{Socket})$$ -/
-def bindPortTCP (port : UInt16) (host : String := "0.0.0.0") : IO Socket :=
+/-- Bind a TCP server socket to a port. Returns a listening socket.
+    $$\text{bindPortTCP} : \text{UInt16} \to \text{String} \to \text{IO}(\text{Socket}\ \texttt{.listening})$$ -/
+def bindPortTCP (port : UInt16) (host : String := "0.0.0.0") : IO (Socket .listening) :=
   listenTCP host port
 
-/-- Connect to a remote TCP server.
-    $$\text{getSocketTCP} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket} \times \text{SockAddr})$$ -/
-def getSocketTCP (host : String) (port : UInt16) : IO (Socket × SockAddr) := do
+/-- Connect to a remote TCP server. Returns a connected socket and the address.
+    $$\text{getSocketTCP} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket}\ \texttt{.connected} \times \text{SockAddr})$$ -/
+def getSocketTCP (host : String) (port : UInt16) : IO (Socket .connected × SockAddr) := do
   let s ← socket .inet .stream
-  connect s ⟨host, port⟩
+  let s ← connect s ⟨host, port⟩
   pure (s, ⟨host, port⟩)
 
-/-- Accept a connection, retrying on transient errors.
-    $$\text{acceptSafe} : \text{Socket} \to \text{IO}(\text{Socket} \times \text{SockAddr})$$ -/
-partial def acceptSafe (serverSock : Socket) : IO (Socket × SockAddr) := do
+/-- Accept a connection on a listening socket, retrying on transient errors.
+    $$\text{acceptSafe} : \text{Socket}\ \texttt{.listening} \to \text{IO}(\text{Socket}\ \texttt{.connected} \times \text{SockAddr})$$ -/
+partial def acceptSafe (serverSock : Socket .listening) : IO (Socket .connected × SockAddr) := do
   try
     accept serverSock
   catch _ =>
@@ -44,7 +44,7 @@ partial def acceptSafe (serverSock : Socket) : IO (Socket × SockAddr) := do
     acceptSafe serverSock
 
 /-- Create AppData from a connected socket. -/
-def mkAppData (clientSock : Socket) (addr : SockAddr) : AppData :=
+def mkAppData (clientSock : Socket .connected) (addr : SockAddr) : AppData :=
   { appRead := recv clientSock 4096
   , appWrite := fun data => do let _ ← send clientSock data; pure ()
   , appSockAddr := addr

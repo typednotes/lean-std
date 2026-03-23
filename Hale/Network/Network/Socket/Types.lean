@@ -150,7 +150,51 @@ deriving Repr
 
     Following the same pattern as Lean's `IO.FS.Handle`. -/
 opaque SocketHandle : NonemptyType
-def Socket : Type := SocketHandle.type
-instance : Nonempty Socket := SocketHandle.property
+
+/-- Raw socket handle from FFI. Internal — use `Socket state` for the typed API. -/
+abbrev RawSocket : Type := SocketHandle.type
+instance : Nonempty RawSocket := SocketHandle.property
+
+/-- POSIX socket lifecycle states.
+    Encoded as a phantom type parameter on `Socket` so protocol violations
+    are compile-time errors. Erased at runtime (zero cost). -/
+inductive SocketState where
+  | fresh      -- Created via socket(), not yet bound or connected
+  | bound      -- bind() succeeded
+  | listening  -- listen() succeeded
+  | connected  -- connect() or accept() produced this socket
+deriving BEq, DecidableEq, Repr
+
+/-- A socket tagged with its POSIX lifecycle state.
+    The state parameter is a compile-time ghost (erased, zero cost).
+    Protocol violations are compile-time errors.
+
+    ```
+    Fresh ──bind──→ Bound ──listen──→ Listening ──accept──→ Connected
+      │                                                      (send/recv)
+      └──connect──→ Connected
+    ```
+
+    The constructor is protected to prevent casual state fabrication.
+    Use the high-level API in `Network.Socket` for state transitions. -/
+structure Socket (state : SocketState) where
+  protected mk ::
+  raw : RawSocket
+
+instance : Nonempty (Socket s) :=
+  let ⟨raw⟩ := SocketHandle.property
+  ⟨Socket.mk raw⟩
+
+/-- State distinctness: all four POSIX socket states are distinct. -/
+theorem SocketState.fresh_ne_bound : SocketState.fresh ≠ SocketState.bound := by decide
+theorem SocketState.fresh_ne_listening : SocketState.fresh ≠ SocketState.listening := by decide
+theorem SocketState.fresh_ne_connected : SocketState.fresh ≠ SocketState.connected := by decide
+theorem SocketState.bound_ne_listening : SocketState.bound ≠ SocketState.listening := by decide
+theorem SocketState.bound_ne_connected : SocketState.bound ≠ SocketState.connected := by decide
+theorem SocketState.listening_ne_connected : SocketState.listening ≠ SocketState.connected := by decide
+
+/-- SocketState BEq is reflexive — each state equals itself. -/
+theorem SocketState.beq_refl (s : SocketState) : (s == s) = true := by
+  cases s <;> decide
 
 end Network.Socket

@@ -127,4 +127,12 @@ instance : Foldable (Either α) where
     | .right b => [b]
     | .left _ => []
 
+-- ── List instance theorems ──────────────────────────────────
+
+/-- `foldr` on an empty list is the initial accumulator. -/
+theorem foldr_nil {f : α → β → β} {z : β} : Foldable.foldr f z ([] : List α) = z := by rfl
+
+/-- `foldl` on an empty list is the initial accumulator. -/
+theorem foldl_nil {f : β → α → β} {z : β} : Foldable.foldl f z ([] : List α) = z := by rfl
+
 end Data

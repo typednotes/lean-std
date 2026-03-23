@@ -402,6 +402,39 @@ Before finalising any module, review every definition for stricter types:
 
 When proofs are infeasible due to opaque runtime primitives (e.g., `Std.Mutex`, `IO.Promise`), document the invariant as an axiom-dependent property.
 
+## Proofs on Objects, Not Wrapper Types
+
+**Principle:** Proofs and invariants must be added directly to the original type, not by creating a new wrapper type that carries the original plus a proof. Lean 4 erases proof terms at compile time, so proof fields on structures are zero-cost.
+
+**Good (proof ON the object):**
+```lean
+structure Settings where
+  settingsTimeout : Nat := 30
+  timeout_pos : settingsTimeout > 0 := by omega   -- proof field, erased at runtime
+```
+
+```lean
+structure Socket (state : SocketState) where        -- phantom param on original type
+  raw : RawSocket
+```
+
+**Bad (wrapper carrying proof ABOUT another object):**
+```lean
+-- DON'T: creates a separate type just to pair an object with a proof
+structure ValidSettings where
+  settings : Settings
+  timeout_pos : settings.settingsTimeout > 0
+```
+
+**Rationale:**
+- Wrapper types obscure invariants by placing them outside the primary type
+- They force users to unwrap (`.settings`, `.headers`) to access the data
+- They duplicate the type surface (users must choose between `Settings` and `ValidSettings`)
+- Proofs embedded directly in the structure are guaranteed by construction — no separate validation step
+- This matches the established pattern in `Ratio` (`den_pos`, `coprime` are fields) and `Socket` (`SocketState` is a phantom parameter)
+
+**When the original type is opaque or external:** use phantom type parameters (e.g., `Socket (state : SocketState)`) or standalone theorems about the type (e.g., `theorem status200_valid`). Never wrap it.
+
 ## Code Simplification Review
 
 Before finalising any module, review for simplification:

@@ -1,8 +1,10 @@
 /-
-  Hale.Network.Network.Socket — High-level socket API
+  Hale.Network.Network.Socket — High-level socket API with POSIX lifecycle states
 
-  Provides a safe, high-level API for POSIX sockets.
-  All resources are managed; `withSocket` ensures proper cleanup.
+  Provides a safe, high-level API for POSIX sockets where the lifecycle state
+  (fresh, bound, listening, connected) is tracked in the type system.
+  Protocol violations are compile-time errors. The state parameter is erased
+  at runtime (zero cost).
 
   ## Design
 
@@ -13,12 +15,24 @@
   The GC finalizer automatically closes file descriptors, but explicit
   `close` is preferred for deterministic resource management.
 
+  ## POSIX Socket State Machine
+
+  ```
+  Fresh ──bind──→ Bound ──listen──→ Listening ──accept──→ Connected
+    │                                                      (send/recv)
+    └──connect──→ Connected
+  ```
+
   ## Guarantees
 
   - `withSocket` ensures sockets are closed even on exceptions (try/finally)
   - `withEventLoop` ensures event loops are closed even on exceptions
   - SO_REUSEADDR is set by default for server sockets via `listenTCP`
   - All IO errors from POSIX calls are surfaced as `IO.Error`
+  - Can't send/recv on a non-connected socket (compile error)
+  - Can't accept on a non-listening socket (compile error)
+  - Can't bind an already-bound socket (compile error)
+  - Can't listen on an unbound socket (compile error)
 -/
 
 import Hale.Network.Network.Socket.FFI
@@ -31,20 +45,26 @@ open Network.Socket.FFI
 -- Socket creation and lifecycle
 -- ══════════════════════════════════════════════════════════════
 
-/-- Create a new socket.
-    $$\text{socket} : \text{Family} \to \text{SocketType} \to \text{IO}(\text{Socket})$$ -/
-def socket (fam : Family) (typ : SocketType) : IO Socket :=
-  socketCreate fam.toUInt8 typ.toUInt8
+/-- Create a new socket in the fresh state.
+    $$\text{socket} : \text{Family} \to \text{SocketType} \to \text{IO}(\text{Socket}\ \texttt{.fresh})$$
+    POSIX: socket(2) returns an unbound, unconnected socket. -/
+def socket (fam : Family) (typ : SocketType) : IO (Socket .fresh) := do
+  let raw ← socketCreate fam.toUInt8 typ.toUInt8
+  pure (Socket.mk raw)
 
-/-- Close a socket. The fd is also closed by the GC finalizer, but
+/-- Close a socket in any state. The fd is also closed by the GC finalizer, but
     explicit close is preferred for deterministic resource release.
-    $$\text{close} : \text{Socket} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def close (s : Socket) : IO Unit :=
-  socketClose s
+    $$\text{close} : \text{Socket}\ s \to \text{IO}(\text{Unit})$$
+    POSIX: close(2) is valid in any state.
 
-/-- Run an action with a socket, ensuring it is closed afterwards.
-    $$\text{withSocket} : \text{Family} \to \text{SocketType} \to (\text{Socket} \to \text{IO}(\alpha)) \to \text{IO}(\alpha)$$ -/
-def withSocket (fam : Family) (typ : SocketType) (f : Socket → IO α) : IO α := do
+    **Limitation:** Without linear types, the Socket value remains in scope
+    after close. The GC finalizer provides a safety net for double-close. -/
+@[inline] def close (s : Socket state) : IO Unit :=
+  socketClose s.raw
+
+/-- Run an action with a fresh socket, ensuring it is closed afterwards.
+    $$\text{withSocket} : \text{Family} \to \text{SocketType} \to (\text{Socket}\ \texttt{.fresh} \to \text{IO}(\alpha)) \to \text{IO}(\alpha)$$ -/
+def withSocket (fam : Family) (typ : SocketType) (f : Socket .fresh → IO α) : IO α := do
   let s ← socket fam typ
   try
     f s
@@ -55,94 +75,106 @@ def withSocket (fam : Family) (typ : SocketType) (f : Socket → IO α) : IO α 
 -- Core socket operations
 -- ══════════════════════════════════════════════════════════════
 
-/-- Bind a socket to an address.
-    $$\text{bind} : \text{Socket} \to \text{SockAddr} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def bind (s : Socket) (addr : SockAddr) : IO Unit :=
-  socketBind s addr.host addr.port
+/-- Bind a fresh socket to an address.
+    $$\text{bind} : \text{Socket}\ \texttt{.fresh} \to \text{SockAddr} \to \text{IO}(\text{Socket}\ \texttt{.bound})$$
+    POSIX: bind(2) requires an unbound socket. -/
+def bind (s : Socket .fresh) (addr : SockAddr) : IO (Socket .bound) := do
+  socketBind s.raw addr.host addr.port
+  pure (Socket.mk s.raw)
 
-/-- Start listening for connections.
-    $$\text{listen} : \text{Socket} \to \mathbb{N} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def listen (s : Socket) (backlog : Nat := 128) : IO Unit :=
-  socketListen s backlog.toUSize
+/-- Start listening for connections on a bound socket.
+    $$\text{listen} : \text{Socket}\ \texttt{.bound} \to \mathbb{N} \to \text{IO}(\text{Socket}\ \texttt{.listening})$$
+    POSIX: listen(2) requires a bound socket. -/
+def listen (s : Socket .bound) (backlog : Nat := 128) : IO (Socket .listening) := do
+  socketListen s.raw backlog.toUSize
+  pure (Socket.mk s.raw)
 
-/-- Accept a connection. Returns the client socket and remote address.
-    $$\text{accept} : \text{Socket} \to \text{IO}(\text{Socket} \times \text{SockAddr})$$ -/
-def accept (s : Socket) : IO (Socket × SockAddr) := do
-  let clientSock ← socketAccept s
-  let host ← FFI.getPeerNameHost clientSock
-  let port ← FFI.getPeerNamePort clientSock
-  pure (clientSock, ⟨host, port⟩)
+/-- Accept a connection on a listening socket.
+    Returns a new connected socket and the peer address.
+    The listener remains in the listening state.
+    $$\text{accept} : \text{Socket}\ \texttt{.listening} \to \text{IO}(\text{Socket}\ \texttt{.connected} \times \text{SockAddr})$$
+    POSIX: accept(2) requires a listening socket. -/
+def accept (s : Socket .listening) : IO (Socket .connected × SockAddr) := do
+  let clientRaw ← socketAccept s.raw
+  let host ← FFI.getPeerNameHost clientRaw
+  let port ← FFI.getPeerNamePort clientRaw
+  pure (Socket.mk clientRaw, ⟨host, port⟩)
 
-/-- Connect to a remote address.
-    $$\text{connect} : \text{Socket} \to \text{SockAddr} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def connect (s : Socket) (addr : SockAddr) : IO Unit :=
-  socketConnect s addr.host addr.port
+/-- Connect a fresh socket to a remote address.
+    $$\text{connect} : \text{Socket}\ \texttt{.fresh} \to \text{SockAddr} \to \text{IO}(\text{Socket}\ \texttt{.connected})$$
+    POSIX: connect(2) on an unbound socket implicitly binds it. -/
+def connect (s : Socket .fresh) (addr : SockAddr) : IO (Socket .connected) := do
+  socketConnect s.raw addr.host addr.port
+  pure (Socket.mk s.raw)
 
-/-- Send a ByteArray on the socket. Returns bytes sent.
-    $$\text{send} : \text{Socket} \to \text{ByteArray} \to \text{IO}(\mathbb{N})$$ -/
-@[inline] def send (s : Socket) (data : ByteArray) : IO Nat := do
-  let n ← socketSend s data
+/-- Send a ByteArray on a connected socket. Returns bytes sent.
+    $$\text{send} : \text{Socket}\ \texttt{.connected} \to \text{ByteArray} \to \text{IO}(\mathbb{N})$$
+    POSIX: send(2) requires a connected socket. -/
+@[inline] def send (s : Socket .connected) (data : ByteArray) : IO Nat := do
+  let n ← socketSend s.raw data
   pure n.toNat
 
-/-- Receive up to `maxlen` bytes from the socket.
-    $$\text{recv} : \text{Socket} \to \mathbb{N} \to \text{IO}(\text{ByteArray})$$ -/
-@[inline] def recv (s : Socket) (maxlen : Nat := 4096) : IO ByteArray :=
-  socketRecv s maxlen.toUSize
+/-- Receive up to `maxlen` bytes from a connected socket.
+    $$\text{recv} : \text{Socket}\ \texttt{.connected} \to \mathbb{N} \to \text{IO}(\text{ByteArray})$$
+    POSIX: recv(2) requires a connected socket. -/
+@[inline] def recv (s : Socket .connected) (maxlen : Nat := 4096) : IO ByteArray :=
+  socketRecv s.raw maxlen.toUSize
 
-/-- Shutdown a socket for reading, writing, or both.
-    $$\text{shutdown} : \text{Socket} \to \text{ShutdownHow} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def shutdown (s : Socket) (how : ShutdownHow) : IO Unit :=
-  socketShutdown s how.toUInt8
+/-- Shutdown a connected socket for reading, writing, or both.
+    $$\text{shutdown} : \text{Socket}\ \texttt{.connected} \to \text{ShutdownHow} \to \text{IO}(\text{Unit})$$
+    POSIX: shutdown(2) requires a connected socket. -/
+@[inline] def shutdown (s : Socket .connected) (how : ShutdownHow) : IO Unit :=
+  socketShutdown s.raw how.toUInt8
 
 -- ══════════════════════════════════════════════════════════════
 -- Socket options
 -- ══════════════════════════════════════════════════════════════
 
-/-- Set the SO_REUSEADDR option. -/
-@[inline] def setReuseAddr (s : Socket) (enable : Bool := true) : IO Unit :=
-  FFI.setReuseAddr s (if enable then 1 else 0)
+/-- Set the SO_REUSEADDR option. Valid in any state (typically before bind). -/
+@[inline] def setReuseAddr (s : Socket state) (enable : Bool := true) : IO Unit :=
+  FFI.setReuseAddr s.raw (if enable then 1 else 0)
 
-/-- Set the TCP_NODELAY option. -/
-@[inline] def setNoDelay (s : Socket) (enable : Bool := true) : IO Unit :=
-  FFI.setNoDelay s (if enable then 1 else 0)
+/-- Set the TCP_NODELAY option on a connected socket. -/
+@[inline] def setNoDelay (s : Socket .connected) (enable : Bool := true) : IO Unit :=
+  FFI.setNoDelay s.raw (if enable then 1 else 0)
 
-/-- Set non-blocking mode. -/
-@[inline] def setNonBlocking (s : Socket) (enable : Bool := true) : IO Unit :=
-  FFI.setNonBlocking s (if enable then 1 else 0)
+/-- Set non-blocking mode. Valid in any state. -/
+@[inline] def setNonBlocking (s : Socket state) (enable : Bool := true) : IO Unit :=
+  FFI.setNonBlocking s.raw (if enable then 1 else 0)
 
-/-- Set the SO_KEEPALIVE option. -/
-@[inline] def setKeepAlive (s : Socket) (enable : Bool := true) : IO Unit :=
-  FFI.setKeepAlive s (if enable then 1 else 0)
+/-- Set the SO_KEEPALIVE option on a connected socket. -/
+@[inline] def setKeepAlive (s : Socket .connected) (enable : Bool := true) : IO Unit :=
+  FFI.setKeepAlive s.raw (if enable then 1 else 0)
 
 /-- Set the SO_LINGER option.
     When enabled, `close` will block for up to `seconds` to flush pending data. -/
-@[inline] def setLinger (s : Socket) (enable : Bool) (seconds : Nat := 0) : IO Unit :=
-  FFI.setLinger s (if enable then 1 else 0) seconds.toUSize
+@[inline] def setLinger (s : Socket state) (enable : Bool) (seconds : Nat := 0) : IO Unit :=
+  FFI.setLinger s.raw (if enable then 1 else 0) seconds.toUSize
 
 /-- Set the receive buffer size (SO_RCVBUF). -/
-@[inline] def setRecvBufSize (s : Socket) (size : Nat) : IO Unit :=
-  FFI.setRecvBuf s size.toUSize
+@[inline] def setRecvBufSize (s : Socket state) (size : Nat) : IO Unit :=
+  FFI.setRecvBuf s.raw size.toUSize
 
 /-- Set the send buffer size (SO_SNDBUF). -/
-@[inline] def setSendBufSize (s : Socket) (size : Nat) : IO Unit :=
-  FFI.setSendBuf s size.toUSize
+@[inline] def setSendBufSize (s : Socket state) (size : Nat) : IO Unit :=
+  FFI.setSendBuf s.raw size.toUSize
 
 -- ══════════════════════════════════════════════════════════════
 -- Address introspection
 -- ══════════════════════════════════════════════════════════════
 
-/-- Get the remote peer's address.
-    $$\text{getPeerName} : \text{Socket} \to \text{IO}(\text{SockAddr})$$ -/
-def getPeerName (s : Socket) : IO SockAddr := do
-  let host ← FFI.getPeerNameHost s
-  let port ← FFI.getPeerNamePort s
+/-- Get the remote peer's address. Requires a connected socket.
+    $$\text{getPeerName} : \text{Socket}\ \texttt{.connected} \to \text{IO}(\text{SockAddr})$$ -/
+def getPeerName (s : Socket .connected) : IO SockAddr := do
+  let host ← FFI.getPeerNameHost s.raw
+  let port ← FFI.getPeerNamePort s.raw
   pure ⟨host, port⟩
 
-/-- Get the socket's locally-bound address.
-    $$\text{getSockName} : \text{Socket} \to \text{IO}(\text{SockAddr})$$ -/
-def getSockName (s : Socket) : IO SockAddr := do
-  let host ← FFI.getSockNameHost s
-  let port ← FFI.getSockNamePort s
+/-- Get the socket's locally-bound address. Valid in any state.
+    $$\text{getSockName} : \text{Socket}\ s \to \text{IO}(\text{SockAddr})$$ -/
+def getSockName (s : Socket state) : IO SockAddr := do
+  let host ← FFI.getSockNameHost s.raw
+  let port ← FFI.getSockNamePort s.raw
   pure ⟨host, port⟩
 
 -- ══════════════════════════════════════════════════════════════
@@ -163,22 +195,36 @@ def getAddrInfo (host : String) (service : String) : IO (List AddrInfo) := do
 -- ══════════════════════════════════════════════════════════════
 
 /-- Create a TCP server socket: socket + reuseaddr + bind + listen.
-    $$\text{listenTCP} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket})$$ -/
-def listenTCP (host : String) (port : UInt16) (backlog : Nat := 128) : IO Socket := do
+    Returns a socket in the listening state.
+    $$\text{listenTCP} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket}\ \texttt{.listening})$$ -/
+def listenTCP (host : String) (port : UInt16) (backlog : Nat := 128) : IO (Socket .listening) := do
   let s ← socket .inet .stream
   setReuseAddr s
-  bind s ⟨host, port⟩
+  let s ← bind s ⟨host, port⟩
   listen s backlog
-  pure s
 
 /-- Create a TCP server socket with IPv6 support.
-    $$\text{listenTCP6} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket})$$ -/
-def listenTCP6 (host : String) (port : UInt16) (backlog : Nat := 128) : IO Socket := do
+    Returns a socket in the listening state.
+    $$\text{listenTCP6} : \text{String} \to \text{UInt16} \to \text{IO}(\text{Socket}\ \texttt{.listening})$$ -/
+def listenTCP6 (host : String) (port : UInt16) (backlog : Nat := 128) : IO (Socket .listening) := do
   let s ← socket .inet6 .stream
   setReuseAddr s
-  bind s ⟨host, port⟩
+  let s ← bind s ⟨host, port⟩
   listen s backlog
-  pure s
+
+-- ══════════════════════════════════════════════════════════════
+-- Resource-safe bracket
+-- ══════════════════════════════════════════════════════════════
+
+/-- Run an action with a listening socket, ensuring it is closed afterwards.
+    $$\text{withListenTCP} : \text{String} \to \text{UInt16} \to (\text{Socket}\ \texttt{.listening} \to \text{IO}\ \alpha) \to \text{IO}\ \alpha$$ -/
+def withListenTCP (host : String) (port : UInt16) (f : Socket .listening → IO α) :
+    IO α := do
+  let s ← listenTCP host port
+  try
+    f s
+  finally
+    close s
 
 -- ══════════════════════════════════════════════════════════════
 -- Event loop (kqueue / epoll)
@@ -196,15 +242,15 @@ def create : IO EventLoop :=
 @[inline] def close (el : EventLoop) : IO Unit :=
   FFI.eventLoopClose el
 
-/-- Register interest in events for a socket.
-    $$\text{add} : \text{EventLoop} \to \text{Socket} \to \text{EventType} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def add (el : EventLoop) (s : Socket) (events : EventType) : IO Unit :=
-  FFI.eventLoopAdd el s events.flags
+/-- Register interest in events for a socket (any state).
+    $$\text{add} : \text{EventLoop} \to \text{Socket}\ s \to \text{EventType} \to \text{IO}(\text{Unit})$$ -/
+@[inline] def add (el : EventLoop) (s : Socket state) (events : EventType) : IO Unit :=
+  FFI.eventLoopAdd el s.raw events.flags
 
-/-- Unregister a socket from the event loop.
-    $$\text{del} : \text{EventLoop} \to \text{Socket} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def del (el : EventLoop) (s : Socket) : IO Unit :=
-  FFI.eventLoopDel el s
+/-- Unregister a socket from the event loop (any state).
+    $$\text{del} : \text{EventLoop} \to \text{Socket}\ s \to \text{IO}(\text{Unit})$$ -/
+@[inline] def del (el : EventLoop) (s : Socket state) : IO Unit :=
+  FFI.eventLoopDel el s.raw
 
 /-- Wait for events with a timeout (in milliseconds).
     Returns a list of ready events.

@@ -20,6 +20,7 @@
   - `sendResponse` returns `ResponseReceived`, ensuring exactly one response is sent
   - Auto-added headers (`Date`, `Server`, `Content-Length`, `Transfer-Encoding`)
     do not overwrite user-provided headers
+  - Requires a connected socket (compile-time)
 -/
 
 import Hale.WAI
@@ -82,10 +83,32 @@ private def addAutoHeaders (settings : Settings) (extraHeaders : ResponseHeaders
     if hasHeader n acc then acc else (n, v) :: acc) headers
   headers
 
-/-- Send a full HTTP response over a socket.
+/-- addAutoHeaders preserves the count of user headers (only adds, never removes). -/
+private theorem addAutoHeaders_length_ge (settings : Settings) (extra user : ResponseHeaders) :
+    user.length ≤ (addAutoHeaders settings extra user).length := by
+  simp only [addAutoHeaders]
+  -- After the server-header step, length is ≥ user.length
+  have h1 : user.length ≤
+    (if settings.settingsAddServerHeader && !hasHeader hServer user
+     then (hServer, settings.settingsServerName) :: user
+     else user).length := by
+    split <;> simp_all [List.length_cons]
+  -- foldl that only prepends preserves ≥
+  suffices ∀ (acc : ResponseHeaders) (es : ResponseHeaders),
+    acc.length ≤ (es.foldl (fun a (n, v) => if hasHeader n a then a else (n, v) :: a) acc).length from
+    Nat.le_trans h1 (this _ extra)
+  intro acc es
+  induction es generalizing acc with
+  | nil => exact Nat.le_refl _
+  | cons hd tl ih =>
+    simp only [List.foldl]
+    apply Nat.le_trans _ (ih _)
+    split <;> simp_all [List.length_cons]
+
+/-- Send a full HTTP response over a connected socket.
     Dispatches on the response type (builder, file, stream, raw).
-    $$\text{sendResponse} : \text{Socket} \to \text{Settings} \to \text{Request} \to \text{Response} \to \text{IO}(\text{ResponseReceived})$$ -/
-def sendResponse (sock : Socket) (settings : Settings) (_req : Request)
+    $$\text{sendResponse} : \text{Socket}\ \texttt{.connected} \to \text{Settings} \to \text{Request} \to \text{Response} \to \text{IO}(\text{ResponseReceived})$$ -/
+def sendResponse (sock : Socket .connected) (settings : Settings) (_req : Request)
     (resp : Response) : IO ResponseReceived := do
   match resp with
   | .responseBuilder status userHeaders body =>

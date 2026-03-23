@@ -1,8 +1,8 @@
 /-
   Hale.SimpleSendfile.Network.Sendfile — Efficient file sending
 
-  Sends a file over a socket. On macOS/Linux, uses the sendfile(2) syscall
-  for zero-copy transfers. Falls back to read+send if FFI is unavailable.
+  Sends a file over a connected socket. On macOS/Linux, uses the sendfile(2)
+  syscall for zero-copy transfers. Falls back to read+send if FFI is unavailable.
 
   ## Design
 
@@ -25,10 +25,10 @@ structure FilePart where
   count : Nat
 deriving BEq, Repr
 
-/-- Send a file (or portion thereof) over a socket.
+/-- Send a file (or portion thereof) over a connected socket.
     Uses read+send fallback implementation.
-    $$\text{sendFile} : \text{Socket} \to \text{String} \to \text{Option}(\text{FilePart}) \to \text{IO}(\text{Unit})$$ -/
-def sendFile (sock : Socket) (path : String) (part : Option FilePart := none) : IO Unit := do
+    $$\text{sendFile} : \text{Socket}\ \texttt{.connected} \to \text{String} \to \text{Option}(\text{FilePart}) \to \text{IO}(\text{Unit})$$ -/
+def sendFile (sock : Socket .connected) (path : String) (part : Option FilePart := none) : IO Unit := do
   let handle ← IO.FS.Handle.mk path .read
   match part with
   | some fp => do
@@ -58,9 +58,9 @@ def sendFile (sock : Socket) (path : String) (part : Option FilePart := none) : 
       else
         let _ ← Network.Socket.send sock data
 
-/-- Send an entire file over a socket.
-    $$\text{sendFileSimple} : \text{Socket} \to \text{String} \to \text{IO}(\text{Unit})$$ -/
-@[inline] def sendFileSimple (sock : Socket) (path : String) : IO Unit :=
+/-- Send an entire file over a connected socket.
+    $$\text{sendFileSimple} : \text{Socket}\ \texttt{.connected} \to \text{String} \to \text{IO}(\text{Unit})$$ -/
+@[inline] def sendFileSimple (sock : Socket .connected) (path : String) : IO Unit :=
   sendFile sock path
 
 end Network.Sendfile

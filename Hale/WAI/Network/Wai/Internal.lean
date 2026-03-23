@@ -123,6 +123,16 @@ def mapResponseStatus (f : Status → Status) : Response → Response
   | .responseStream s h b => .responseStream (f s) h b
   | .responseRaw a fb => .responseRaw a (fb.mapResponseStatus f)
 
+/-- Whether a response has an empty body.
+    Used for RFC 9110 §6.4.1 compliance checks.
+    Files and streams are conservatively assumed non-empty;
+    raw responses are opaque. -/
+def bodyIsEmpty : Response → Bool
+  | .responseBuilder _ _ body => body.isEmpty
+  | .responseFile _ _ _ _     => false
+  | .responseStream _ _ _     => false
+  | .responseRaw _ _          => false
+
 end Response
 
 /-- A WAI application.

@@ -132,4 +132,31 @@ theorem status100_valid : 100 ≤ status100.statusCode ∧ status100.statusCode 
 theorem status301_valid : 100 ≤ status301.statusCode ∧ status301.statusCode ≤ 599 := by
   simp [status301]
 
+-- ═══════════════════════════════════════════════════════════
+-- RFC 9110 §15: Status Code Semantics
+-- ═══════════════════════════════════════════════════════════
+
+/-- RFC 9110 §6.4.1: Status codes whose responses MUST NOT contain a message body.
+    This includes all 1xx (Informational), 204 (No Content), and 304 (Not Modified).
+    $$\text{mustNotHaveBody}(s) \iff \lfloor s/100 \rfloor = 1 \lor s = 204 \lor s = 304$$ -/
+def Status.mustNotHaveBody (s : Status) : Bool :=
+  s.statusCode / 100 == 1 || s.statusCode == 204 || s.statusCode == 304
+
+/-- 1xx informational responses must not have a body (RFC 9110 §15.2). -/
+theorem status100_no_body : status100.mustNotHaveBody = true := by native_decide
+/-- 101 Switching Protocols must not have a body (1xx). -/
+theorem status101_no_body : status101.mustNotHaveBody = true := by native_decide
+/-- 204 No Content must not have a body (RFC 9110 §15.3.5). -/
+theorem status204_no_body : status204.mustNotHaveBody = true := by native_decide
+/-- 304 Not Modified must not have a body (RFC 9110 §15.4.5). -/
+theorem status304_no_body : status304.mustNotHaveBody = true := by native_decide
+/-- 200 OK may have a body. -/
+theorem status200_may_have_body : status200.mustNotHaveBody = false := by native_decide
+/-- 201 Created may have a body. -/
+theorem status201_may_have_body : status201.mustNotHaveBody = false := by native_decide
+/-- 404 Not Found may have a body. -/
+theorem status404_may_have_body : status404.mustNotHaveBody = false := by native_decide
+/-- 500 Internal Server Error may have a body. -/
+theorem status500_may_have_body : status500.mustNotHaveBody = false := by native_decide
+
 end Network.HTTP.Types

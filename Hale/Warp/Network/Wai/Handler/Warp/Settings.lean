@@ -11,7 +11,8 @@
   ## Guarantees
 
   - `settingsPort` is `UInt16`, bounding the port to [0, 65535] by construction
-  - `settingsTimeout` and `settingsBacklog` are `Nat`, ensuring non-negativity
+  - `settingsTimeout > 0` by construction (proof field, erased at runtime)
+  - `settingsBacklog > 0` by construction (proof field, erased at runtime)
 -/
 
 import Hale.WAI
@@ -24,6 +25,7 @@ open Network.HTTP.Types
 open Network.Socket (SockAddr)
 
 /-- Warp server settings.
+    Proofs are embedded directly in the structure (erased at runtime, zero cost).
     $$\text{Settings} = \{ \text{port} : \text{UInt16},\; \text{host} : \text{String},\; \ldots \}$$ -/
 structure Settings where
   /-- Port to listen on. Default: 3000. -/
@@ -41,10 +43,16 @@ structure Settings where
   /-- Maximum number of bytes to flush from a request body on connection
       reuse. `none` means no flushing limit. -/
   settingsMaximumBodyFlush : Option Nat := some 8192
-  /-- Timeout in seconds for each connection. -/
+  /-- Timeout in seconds for each connection. Must be > 0. -/
   settingsTimeout : Nat := 30
-  /-- Socket listen backlog. -/
+  /-- Proof that timeout is positive (zero would immediately close connections).
+      Erased at runtime. -/
+  settingsTimeoutPos : settingsTimeout > 0 := by omega
+  /-- Socket listen backlog. Must be > 0. -/
   settingsBacklog : Nat := 128
+  /-- Proof that backlog is positive (zero would reject all connections).
+      Erased at runtime. -/
+  settingsBacklogPos : settingsBacklog > 0 := by omega
   /-- Graceful shutdown timeout in seconds. `none` means no graceful shutdown. -/
   settingsGracefulShutdownTimeout : Option Nat := none
   /-- Whether to auto-add the `Date` response header. -/
@@ -56,18 +64,9 @@ structure Settings where
     $$\text{defaultSettings} = \text{Settings}\{\}$$ -/
 def defaultSettings : Settings := {}
 
-/-- Validated Warp settings. Encodes that:
-    - timeout > 0 (zero timeout would immediately close connections)
-    - backlog > 0 (zero backlog would reject all connections)
-    Does not replace `Settings` in the API — use alongside for validation. -/
-structure ValidSettings where
-  settings : Settings
-  timeout_pos : settings.settingsTimeout > 0 := by omega
-  backlog_pos : settings.settingsBacklog > 0 := by omega
-
-/-- The default settings are valid: timeout = 30 > 0 and backlog = 128 > 0. -/
+/-- The default settings have positive timeout and backlog (by construction). -/
 theorem defaultSettings_valid : (defaultSettings).settingsTimeout > 0 ∧
-    (defaultSettings).settingsBacklog > 0 := by
-  simp [defaultSettings]
+    (defaultSettings).settingsBacklog > 0 :=
+  ⟨defaultSettings.settingsTimeoutPos, defaultSettings.settingsBacklogPos⟩
 
 end Network.Wai.Handler.Warp

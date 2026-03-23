@@ -20,6 +20,8 @@
   - Client sockets are closed after handling via `try/finally`
   - Exception in one connection does not crash the server
   - Keep-alive follows HTTP/1.1 semantics (default keep-alive, close on request)
+  - `acceptLoop` requires a listening socket (compile-time)
+  - `runConnection` requires a connected socket (compile-time)
 -/
 
 import Hale.WAI
@@ -75,10 +77,11 @@ theorem connAction_http11_default (req : Network.Wai.Request)
 
 /-- Handle a single HTTP connection with keep-alive support.
     Creates a RecvBuffer once, loops over requests until close.
-    $$\text{runConnection} : \text{Socket} \to \text{SockAddr} \to \text{Settings} \to \text{Application} \to \text{IO}(\text{Unit})$$ -/
-partial def runConnection (clientSock : Socket) (remoteAddr : SockAddr)
+    Requires a connected socket.
+    $$\text{runConnection} : \text{Socket}\ \texttt{.connected} \to \text{SockAddr} \to \text{Settings} \to \text{Application} \to \text{IO}(\text{Unit})$$ -/
+partial def runConnection (clientSock : Socket .connected) (remoteAddr : SockAddr)
     (settings : Settings) (app : Application) : IO Unit := do
-  let buf ← FFI.recvBufCreate clientSock
+  let buf ← FFI.recvBufCreate clientSock.raw
   try
     let mut keepGoing := true
     while keepGoing do
@@ -114,8 +117,9 @@ partial def runConnection (clientSock : Socket) (remoteAddr : SockAddr)
 
 /-- Accept loop: continuously accepts connections and spawns tasks.
     Each accepted connection is handled in a separate task via `IO.asTask`.
-    $$\text{acceptLoop} : \text{Socket} \to \text{Settings} \to \text{Application} \to \text{IO}(\text{Unit})$$ -/
-partial def acceptLoop (serverSock : Socket) (settings : Settings)
+    Requires a listening socket.
+    $$\text{acceptLoop} : \text{Socket}\ \texttt{.listening} \to \text{Settings} \to \text{Application} \to \text{IO}(\text{Unit})$$ -/
+partial def acceptLoop (serverSock : Socket .listening) (settings : Settings)
     (app : Application) : IO Unit := do
   let (clientSock, remoteAddr) ← Network.Socket.accept serverSock
   -- Spawn connection handler as a green thread on the scheduler

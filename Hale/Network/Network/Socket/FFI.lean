@@ -38,7 +38,7 @@ instance : Nonempty RecvBuffer := RecvBufferHandle.property
 /-- Create a buffered reader for a socket.
     $$\text{recvBufCreate} : \text{Socket} \to \text{IO}(\text{RecvBuffer})$$ -/
 @[extern "hale_recvbuf_create"]
-opaque recvBufCreate (sock : @& Socket) : IO RecvBuffer
+opaque recvBufCreate (sock : @& RawSocket) : IO RecvBuffer
 
 /-- Read a CRLF-terminated line. Returns the line without the CRLF.
     Returns empty string on EOF. The scan loop runs entirely in C.
@@ -58,126 +58,126 @@ opaque recvBufReadN (buf : @& RecvBuffer) (n : USize) : IO ByteArray
 /-- Create a socket. Returns an opaque Socket handle.
     $$\text{socketCreate} : \text{UInt8} \to \text{UInt8} \to \text{IO}(\text{Socket})$$ -/
 @[extern "hale_socket_create"]
-opaque socketCreate (domain : UInt8) (socktype : UInt8) : IO Socket
+opaque socketCreate (domain : UInt8) (socktype : UInt8) : IO RawSocket
 
 /-- Close a socket. The fd is also closed by the GC finalizer, but
     explicit close is preferred for deterministic resource release.
     $$\text{socketClose} : \text{Socket} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_close"]
-opaque socketClose (sock : @& Socket) : IO Unit
+opaque socketClose (sock : @& RawSocket) : IO Unit
 
 /-- Bind a socket to an address (IPv4/IPv6 via getaddrinfo).
     $$\text{socketBind} : \text{Socket} \to \text{String} \to \text{UInt16} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_bind"]
-opaque socketBind (sock : @& Socket) (host : @& String) (port : UInt16) : IO Unit
+opaque socketBind (sock : @& RawSocket) (host : @& String) (port : UInt16) : IO Unit
 
 /-- Listen for connections.
     $$\text{socketListen} : \text{Socket} \to \text{USize} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_listen"]
-opaque socketListen (sock : @& Socket) (backlog : USize) : IO Unit
+opaque socketListen (sock : @& RawSocket) (backlog : USize) : IO Unit
 
 /-- Accept a connection. Returns the client socket.
     $$\text{socketAccept} : \text{Socket} \to \text{IO}\ \text{Socket}$$ -/
 @[extern "hale_socket_accept"]
-opaque socketAccept (sock : @& Socket) : IO Socket
+opaque socketAccept (sock : @& RawSocket) : IO RawSocket
 
 /-- Connect to a remote address (IPv4/IPv6 via getaddrinfo).
     $$\text{socketConnect} : \text{Socket} \to \text{String} \to \text{UInt16} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_connect"]
-opaque socketConnect (sock : @& Socket) (host : @& String) (port : UInt16) : IO Unit
+opaque socketConnect (sock : @& RawSocket) (host : @& String) (port : UInt16) : IO Unit
 
 -- ── Send / Recv (TCP) ──
 
 /-- Send data. Returns bytes sent.
     $$\text{socketSend} : \text{Socket} \to \text{ByteArray} \to \text{IO}(\text{USize})$$ -/
 @[extern "hale_socket_send"]
-opaque socketSend (sock : @& Socket) (data : @& ByteArray) : IO USize
+opaque socketSend (sock : @& RawSocket) (data : @& ByteArray) : IO USize
 
 /-- Receive data. Returns received bytes.
     $$\text{socketRecv} : \text{Socket} \to \text{USize} \to \text{IO}(\text{ByteArray})$$ -/
 @[extern "hale_socket_recv"]
-opaque socketRecv (sock : @& Socket) (maxlen : USize) : IO ByteArray
+opaque socketRecv (sock : @& RawSocket) (maxlen : USize) : IO ByteArray
 
 /-- Send all data, looping until complete. Implemented in C to avoid
     Lean compiler issues with Prod containing scalar loop state.
     $$\text{socketSendAll} : \text{Socket} \to \text{ByteArray} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_sendall"]
-opaque socketSendAll (sock : @& Socket) (data : @& ByteArray) : IO Unit
+opaque socketSendAll (sock : @& RawSocket) (data : @& ByteArray) : IO Unit
 
 -- ── UDP: sendto / recvfrom ──
 
 /-- Send data to a specific address (UDP).
     $$\text{socketSendTo} : \text{Socket} \to \text{ByteArray} \to \text{String} \to \text{UInt16} \to \text{IO}(\text{USize})$$ -/
 @[extern "hale_socket_sendto"]
-opaque socketSendTo (sock : @& Socket) (data : @& ByteArray) (host : @& String) (port : UInt16) : IO USize
+opaque socketSendTo (sock : @& RawSocket) (data : @& ByteArray) (host : @& String) (port : UInt16) : IO USize
 
 /-- Receive data with sender address (UDP).
     Returns `(data, (host, port))`.
     $$\text{socketRecvFrom} : \text{Socket} \to \text{USize} \to \text{IO}(\text{ByteArray} \times (\text{String} \times \text{USize}))$$ -/
 @[extern "hale_socket_recvfrom"]
-opaque socketRecvFrom (sock : @& Socket) (maxlen : USize) : IO (ByteArray × String × USize)
+opaque socketRecvFrom (sock : @& RawSocket) (maxlen : USize) : IO (ByteArray × String × USize)
 
 -- ── Socket options ──
 
 /-- Set SO_REUSEADDR option.
     $$\text{setReuseAddr} : \text{Socket} \to \text{UInt8} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_reuseaddr"]
-opaque setReuseAddr (sock : @& Socket) (enable : UInt8) : IO Unit
+opaque setReuseAddr (sock : @& RawSocket) (enable : UInt8) : IO Unit
 
 /-- Set TCP_NODELAY option.
     $$\text{setNoDelay} : \text{Socket} \to \text{UInt8} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_nodelay"]
-opaque setNoDelay (sock : @& Socket) (enable : UInt8) : IO Unit
+opaque setNoDelay (sock : @& RawSocket) (enable : UInt8) : IO Unit
 
 /-- Set non-blocking mode.
     $$\text{setNonBlocking} : \text{Socket} \to \text{UInt8} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_nonblocking"]
-opaque setNonBlocking (sock : @& Socket) (enable : UInt8) : IO Unit
+opaque setNonBlocking (sock : @& RawSocket) (enable : UInt8) : IO Unit
 
 /-- Set SO_KEEPALIVE option.
     $$\text{setKeepAlive} : \text{Socket} \to \text{UInt8} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_keepalive"]
-opaque setKeepAlive (sock : @& Socket) (enable : UInt8) : IO Unit
+opaque setKeepAlive (sock : @& RawSocket) (enable : UInt8) : IO Unit
 
 /-- Set SO_LINGER option.
     $$\text{setLinger} : \text{Socket} \to \text{UInt8} \to \text{USize} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_linger"]
-opaque setLinger (sock : @& Socket) (enable : UInt8) (seconds : USize) : IO Unit
+opaque setLinger (sock : @& RawSocket) (enable : UInt8) (seconds : USize) : IO Unit
 
 /-- Set SO_RCVBUF size.
     $$\text{setRecvBuf} : \text{Socket} \to \text{USize} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_recvbuf"]
-opaque setRecvBuf (sock : @& Socket) (size : USize) : IO Unit
+opaque setRecvBuf (sock : @& RawSocket) (size : USize) : IO Unit
 
 /-- Set SO_SNDBUF size.
     $$\text{setSendBuf} : \text{Socket} \to \text{USize} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_set_sendbuf"]
-opaque setSendBuf (sock : @& Socket) (size : USize) : IO Unit
+opaque setSendBuf (sock : @& RawSocket) (size : USize) : IO Unit
 
 /-- Shutdown a socket (read, write, or both).
     $$\text{socketShutdown} : \text{Socket} \to \text{UInt8} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_socket_shutdown"]
-opaque socketShutdown (sock : @& Socket) (how : UInt8) : IO Unit
+opaque socketShutdown (sock : @& RawSocket) (how : UInt8) : IO Unit
 
 /-- Get peer address host string.
     $$\text{getPeerNameHost} : \text{Socket} \to \text{IO}(\text{String})$$ -/
 @[extern "hale_socket_getpeername_host"]
-opaque getPeerNameHost (sock : @& Socket) : IO String
+opaque getPeerNameHost (sock : @& RawSocket) : IO String
 
 /-- Get peer address port.
     $$\text{getPeerNamePort} : \text{Socket} \to \text{IO}(\text{UInt16})$$ -/
 @[extern "hale_socket_getpeername_port"]
-opaque getPeerNamePort (sock : @& Socket) : IO UInt16
+opaque getPeerNamePort (sock : @& RawSocket) : IO UInt16
 
 /-- Get local address host string.
     $$\text{getSockNameHost} : \text{Socket} \to \text{IO}(\text{String})$$ -/
 @[extern "hale_socket_getsockname_host"]
-opaque getSockNameHost (sock : @& Socket) : IO String
+opaque getSockNameHost (sock : @& RawSocket) : IO String
 
 /-- Get local address port.
     $$\text{getSockNamePort} : \text{Socket} \to \text{IO}(\text{UInt16})$$ -/
 @[extern "hale_socket_getsockname_port"]
-opaque getSockNamePort (sock : @& Socket) : IO UInt16
+opaque getSockNamePort (sock : @& RawSocket) : IO UInt16
 
 -- ── DNS resolution ──
 
@@ -196,12 +196,12 @@ opaque eventLoopCreate : IO EventLoop
 /-- Register interest in events for a socket.
     $$\text{eventLoopAdd} : \text{EventLoop} \to \text{Socket} \to \text{USize} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_event_loop_add"]
-opaque eventLoopAdd (loop : @& EventLoop) (sock : @& Socket) (events : USize) : IO Unit
+opaque eventLoopAdd (loop : @& EventLoop) (sock : @& RawSocket) (events : USize) : IO Unit
 
 /-- Unregister a socket from the event loop.
     $$\text{eventLoopDel} : \text{EventLoop} \to \text{Socket} \to \text{IO}(\text{Unit})$$ -/
 @[extern "hale_event_loop_del"]
-opaque eventLoopDel (loop : @& EventLoop) (sock : @& Socket) : IO Unit
+opaque eventLoopDel (loop : @& EventLoop) (sock : @& RawSocket) : IO Unit
 
 /-- Wait for events. Returns `List (fd × events)`.
     timeout is in milliseconds; pass a very large value for indefinite blocking.
