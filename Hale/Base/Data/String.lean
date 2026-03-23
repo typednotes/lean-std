@@ -31,11 +31,11 @@ def words (s : String) : List String :=
   let chars := s.toList
   let rec go (acc : List Char) (rest : List Char) (result : List String) : List String :=
     match rest with
-    | [] => if acc.isEmpty then result.reverse else (String.mk acc.reverse :: result).reverse
+    | [] => if acc.isEmpty then result.reverse else (String.ofList acc.reverse :: result).reverse
     | c :: cs =>
       if c.isWhitespace then
         if acc.isEmpty then go [] cs result
-        else go [] cs (String.mk acc.reverse :: result)
+        else go [] cs (String.ofList acc.reverse :: result)
       else go (c :: acc) cs result
   go [] chars []
 
