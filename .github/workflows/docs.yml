@@ -22,21 +22,52 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # --- mdBook (guide) ---
+      - name: Install mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+
+      - name: Rewrite API links for deployment
+        run: |
+          # In the deployed site, doc-gen4 output lives at /api/.
+          # The .md files use relative links like ../../Hale/Base.html.
+          # Rewrite them to absolute /api/Hale/... so they work from /guide/.
+          find docs -name '*.md' -exec sed -i \
+            -e 's|\.\./\.\./\.\./Hale/|/api/Hale/|g' \
+            -e 's|\.\./\.\./Hale/|/api/Hale/|g' \
+            -e 's|\.\./Hale/|/api/Hale/|g' \
+            {} +
+
+      - name: Build mdBook
+        run: mdbook build docs
+
+      # --- doc-gen4 (API reference) ---
+      - name: Install OpenSSL
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config
+
       - uses: leanprover/lean-action@v1
 
-      - name: Generate Lean doc
+      - name: Generate doc-gen4 API docs
         run: lake build Hale:docs
 
-      - name: Copy markdown docs
+      # --- Merge into single site ---
+      - name: Assemble site
         run: |
-          mkdir -p .lake/build/doc/markdown
-          cp -r docs/* .lake/build/doc/markdown/ 2>/dev/null || true
+          mkdir -p _site
+
+          # Guide at root (landing page)
+          cp -r .lake/build/guide/html/* _site/
+
+          # API reference at /api/
+          mkdir -p _site/api
+          cp -r .lake/build/doc/* _site/api/
 
       - name: Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.lake/build/doc'
+          path: '_site'
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'

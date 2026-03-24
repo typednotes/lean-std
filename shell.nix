@@ -4,5 +4,6 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.openssl
     pkgs.pkg-config
+    pkgs.mdbook
   ];
 }
