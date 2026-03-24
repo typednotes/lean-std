@@ -75,30 +75,40 @@ namespace Char'
     $$\text{chr}(n) = \text{Char.ofNat}(n)$$ -/
 @[inline] def chr (n : Nat) : Char := Char.ofNat n
 
-/-- Convert a hex digit character to its numeric value.
+/-- Convert a hex digit character to its numeric value, bounded below 16.
     $$\text{digitToInt}(c) = \begin{cases}
       n - 48  & c \in [\texttt{0}\text{-}\texttt{9}] \\
       n - 55  & c \in [\texttt{A}\text{-}\texttt{F}] \\
       n - 87  & c \in [\texttt{a}\text{-}\texttt{f}] \\
       \text{none} & \text{otherwise}
-    \end{cases}$$ -/
-def digitToInt (c : Char) : Option Nat :=
+    \end{cases}$$
+    Returns `Option {n : Nat // n < 16}` — the proof that the digit is in $[0, 15]$
+    is carried in the subtype and erased at runtime. -/
+def digitToInt (c : Char) : Option {n : Nat // n < 16} :=
   let n := c.toNat
-  if n >= 48 && n <= 57 then some (n - 48)
-  else if n >= 65 && n <= 70 then some (n - 55)
-  else if n >= 97 && n <= 102 then some (n - 87)
+  if h1 : n >= 48 && n <= 57 then
+    have h1a : n ≥ 48 := by simp [Bool.and_eq_true] at h1; exact h1.1
+    have h1b : n ≤ 57 := by simp [Bool.and_eq_true] at h1; exact h1.2
+    some ⟨n - 48, by omega⟩
+  else if h2 : n >= 65 && n <= 70 then
+    have h2a : n ≥ 65 := by simp [Bool.and_eq_true] at h2; exact h2.1
+    have h2b : n ≤ 70 := by simp [Bool.and_eq_true] at h2; exact h2.2
+    some ⟨n - 55, by omega⟩
+  else if h3 : n >= 97 && n <= 102 then
+    have h3a : n ≥ 97 := by simp [Bool.and_eq_true] at h3; exact h3.1
+    have h3b : n ≤ 102 := by simp [Bool.and_eq_true] at h3; exact h3.2
+    some ⟨n - 87, by omega⟩
   else none
 
-/-- Convert a number in $[0, 15]$ to a hex digit character.
+/-- Convert a number in $[0, 15]$ to a hex digit character. Total — no `Option` needed.
     $$\text{intToDigit}(n) = \begin{cases}
       \texttt{0} + n & n \in [0, 9] \\
-      \texttt{a} + (n - 10) & n \in [10, 15] \\
-      \text{none} & \text{otherwise}
-    \end{cases}$$ -/
-def intToDigit (n : Nat) : Option Char :=
-  if n <= 9 then some (Char.ofNat (48 + n))
-  else if n <= 15 then some (Char.ofNat (87 + n))
-  else none
+      \texttt{a} + (n - 10) & n \in [10, 15]
+    \end{cases}$$
+    The proof obligation `n < 16` is required at the call site and erased at runtime. -/
+def intToDigit (n : Nat) (_h : n < 16 := by omega) : Char :=
+  if n <= 9 then Char.ofNat (48 + n)
+  else Char.ofNat (87 + n)
 
 -- ── Proofs ──────────────────────────────────────
 
@@ -110,6 +120,31 @@ theorem isSpace_eq_isWhitespace (c : Char) : isSpace c = c.isWhitespace := rfl
 
 /-- `ord` is an alias for `toNat`. -/
 theorem ord_eq_toNat (c : Char) : ord c = c.toNat := rfl
+
+/-- `isAscii c = true` implies `c.toNat < 128`. -/
+theorem isAscii_bound (c : Char) (h : isAscii c = true) : c.toNat < 128 := by
+  simp [isAscii] at h
+  exact h
+
+/-- Roundtrip: `digitToInt (intToDigit n) = some ⟨n, h⟩` for all `n < 16`. -/
+theorem digitToInt_intToDigit (n : Nat) (h : n < 16) :
+    digitToInt (intToDigit n h) = some ⟨n, h⟩ := by
+  -- TODO: prove by exhaustive case analysis on n ∈ [0, 15]
+  -- Requires unfolding Char.ofNat / Char.toNat which involve isValidChar checks
+  sorry
+
+/-- `isAscii` is true iff the code point is below 128. -/
+theorem isAscii_iff (c : Char) : isAscii c = true ↔ c.toNat < 128 := by
+  simp [isAscii]
+
+/-- Every decimal digit is also a hex digit. -/
+theorem isHexDigit_of_digit (c : Char) (h : c.isDigit = true) : isHexDigit c = true := by
+  simp [isHexDigit, h]
+
+/-- `intToDigit` always produces an ASCII character. -/
+theorem intToDigit_isAscii (n : Nat) (h : n < 16) : isAscii (intToDigit n h) = true := by
+  -- TODO: prove by exhaustive case analysis
+  sorry
 
 end Char'
 end Data

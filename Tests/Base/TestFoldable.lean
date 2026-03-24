@@ -25,5 +25,10 @@ def tests : List TestResult :=
   , checkEq "Foldable.minimum? empty" (none : Option Nat) (Foldable.minimum? ([] : List Nat))
   , checkEq "Foldable.maximum? list" (some 5) (Foldable.maximum? [3, 1, 4, 1, 5])
   , checkEq "Foldable.maximum? empty" (none : Option Nat) (Foldable.maximum? ([] : List Nat))
+  -- minimum1 / maximum1 (total, on NonEmpty)
+  , checkEq "Foldable.minimum1 NonEmpty" 1 (Foldable.minimum1 (NonEmpty.mk 3 [1, 4, 1, 5]))
+  , checkEq "Foldable.maximum1 NonEmpty" 5 (Foldable.maximum1 (NonEmpty.mk 3 [1, 4, 1, 5]))
+  , checkEq "Foldable.minimum1 singleton" 42 (Foldable.minimum1 (NonEmpty.mk 42 []))
+  , checkEq "Foldable.maximum1 singleton" 42 (Foldable.maximum1 (NonEmpty.mk 42 []))
   ]
 end TestFoldable

@@ -50,22 +50,23 @@ def tests : List TestResult :=
   , checkEq "Char' ord 'A'" 65 (Char'.ord 'A')
   , checkEq "Char' chr 65" 'A' (Char'.chr 65)
   , checkEq "Char' ord (chr 48)" 48 (Char'.ord (Char'.chr 48))
-  -- digitToInt
-  , checkEq "Char' digitToInt '0'" (some 0) (Char'.digitToInt '0')
-  , checkEq "Char' digitToInt '9'" (some 9) (Char'.digitToInt '9')
-  , checkEq "Char' digitToInt 'a'" (some 10) (Char'.digitToInt 'a')
-  , checkEq "Char' digitToInt 'F'" (some 15) (Char'.digitToInt 'F')
-  , checkEq "Char' digitToInt 'g'" (none : Option Nat) (Char'.digitToInt 'g')
-  -- intToDigit
-  , checkEq "Char' intToDigit 0" (some '0') (Char'.intToDigit 0)
-  , checkEq "Char' intToDigit 9" (some '9') (Char'.intToDigit 9)
-  , checkEq "Char' intToDigit 10" (some 'a') (Char'.intToDigit 10)
-  , checkEq "Char' intToDigit 15" (some 'f') (Char'.intToDigit 15)
-  , checkEq "Char' intToDigit 16" (none : Option Char) (Char'.intToDigit 16)
+  -- digitToInt (now returns Option {n : Nat // n < 16})
+  , check "Char' digitToInt '0'" ((Char'.digitToInt '0').map (·.val) == some 0)
+  , check "Char' digitToInt '9'" ((Char'.digitToInt '9').map (·.val) == some 9)
+  , check "Char' digitToInt 'a'" ((Char'.digitToInt 'a').map (·.val) == some 10)
+  , check "Char' digitToInt 'F'" ((Char'.digitToInt 'F').map (·.val) == some 15)
+  , check "Char' digitToInt 'g'" ((Char'.digitToInt 'g').isNone)
+  -- intToDigit (now total: (n : Nat) → (h : n < 16) → Char)
+  , checkEq "Char' intToDigit 0" '0' (Char'.intToDigit 0)
+  , checkEq "Char' intToDigit 9" '9' (Char'.intToDigit 9)
+  , checkEq "Char' intToDigit 10" 'a' (Char'.intToDigit 10)
+  , checkEq "Char' intToDigit 15" 'f' (Char'.intToDigit 15)
   -- Proof coverage
   , proofCovered "Char'.isAlphaNum_iff" "Hale.Base.Data.Char"
   , proofCovered "Char'.isSpace_eq_isWhitespace" "Hale.Base.Data.Char"
   , proofCovered "Char'.ord_eq_toNat" "Hale.Base.Data.Char"
+  , proofCovered "Char'.isAscii_bound" "Hale.Base.Data.Char"
+  , proofCovered "Char'.digitToInt_intToDigit" "Hale.Base.Data.Char"
   ]
 
 end TestDataChar

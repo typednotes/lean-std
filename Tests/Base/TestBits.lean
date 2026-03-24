@@ -39,10 +39,11 @@ def tests : List TestResult :=
       (Bits.or (0xAB : UInt8) (Bits.zeroBits))
   -- FiniteBits
   , checkEq "FiniteBits UInt8 finiteBitSize" 8 (FiniteBits.finiteBitSize (α := UInt8))
-  , checkEq "FiniteBits UInt8 countLeadingZeros 1" 7 (FiniteBits.countLeadingZeros (1 : UInt8))
-  , checkEq "FiniteBits UInt8 countTrailingZeros 2" 1 (FiniteBits.countTrailingZeros (2 : UInt8))
-  , checkEq "FiniteBits UInt8 countLeadingZeros 0" 8 (FiniteBits.countLeadingZeros (0 : UInt8))
-  , checkEq "FiniteBits UInt8 countTrailingZeros 0" 8 (FiniteBits.countTrailingZeros (0 : UInt8))
+  , checkEq "FiniteBits UInt8 countLeadingZeros 1" 7 (FiniteBits.countLeadingZeros (1 : UInt8)).val
+  , checkEq "FiniteBits UInt8 countTrailingZeros 2" 1 (FiniteBits.countTrailingZeros (2 : UInt8)).val
+  , checkEq "FiniteBits UInt8 countLeadingZeros 0" 8 (FiniteBits.countLeadingZeros (0 : UInt8)).val
+  , checkEq "FiniteBits UInt8 countTrailingZeros 0" 8 (FiniteBits.countTrailingZeros (0 : UInt8)).val
+  , checkEq "FiniteBits UInt8 popCountBounded 0xFF" 8 (FiniteBits.popCountBounded (0xFF : UInt8)).val
   -- UInt32 spot check
   , checkEq "Bits UInt32 bitSizeMaybe" (some 32) (Bits.bitSizeMaybe (α := UInt32))
   , checkEq "Bits UInt32 popCount 0xFFFF" 16 (Bits.popCount (0xFFFF : UInt32))

@@ -17,12 +17,12 @@ def tests : List TestResult :=
   -- transpose
   , checkEq "List' transpose" [[1, 4], [2, 5], [3, 6]] (List'.transpose [[1, 2, 3], [4, 5, 6]])
   , checkEq "List' transpose empty" ([] : List (List Nat)) (List'.transpose [])
-  -- tails
-  , checkEq "List' tails" [[1, 2, 3], [2, 3], [3], []] (List'.tails [1, 2, 3])
-  , checkEq "List' tails empty" ([[]] : List (List Nat)) (List'.tails [])
-  -- inits
-  , checkEq "List' inits" [[], [1], [1, 2], [1, 2, 3]] (List'.inits [1, 2, 3])
-  , checkEq "List' inits empty" ([[]] : List (List Nat)) (List'.inits [])
+  -- tails (now returns NonEmpty)
+  , checkEq "List' tails" [[1, 2, 3], [2, 3], [3], []] (List'.tails [1, 2, 3]).toList
+  , checkEq "List' tails empty" ([[]] : List (List Nat)) (List'.tails []).toList
+  -- inits (now returns NonEmpty)
+  , checkEq "List' inits" [[], [1], [1, 2], [1, 2, 3]] (List'.inits [1, 2, 3]).toList
+  , checkEq "List' inits empty" ([[]] : List (List Nat)) (List'.inits []).toList
   -- subsequences
   , checkEq "List' subsequences [1,2]" [[], [2], [1], [1, 2]] (List'.subsequences [1, 2])
   , checkEq "List' subsequences empty" ([[]] : List (List Nat)) (List'.subsequences [])
@@ -30,9 +30,9 @@ def tests : List TestResult :=
   , checkEq "List' unfoldr countdown"
       [5, 4, 3, 2, 1]
       (List'.unfoldr (fun n => if n == 0 then none else some (n, n - 1)) 5)
-  -- scanr
-  , checkEq "List' scanr (+) 0" [6, 5, 3, 0] (List'.scanr (· + ·) 0 [1, 2, 3])
-  , checkEq "List' scanr empty" [0] (List'.scanr (· + ·) 0 ([] : List Nat))
+  -- scanr (now returns NonEmpty)
+  , checkEq "List' scanr (+) 0" [6, 5, 3, 0] (List'.scanr (· + ·) 0 [1, 2, 3]).toList
+  , checkEq "List' scanr empty" [0] (List'.scanr (· + ·) 0 ([] : List Nat)).toList
   -- mapAccumL
   , check "List' mapAccumL running sum"
       (let (s, ys) := List'.mapAccumL (fun acc x => (acc + x, acc + x)) 0 [1, 2, 3]

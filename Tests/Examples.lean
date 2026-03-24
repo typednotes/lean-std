@@ -240,3 +240,73 @@ example (s h b) : (Response.responseBuilder s h b).mapResponseStatus id
     = .responseBuilder s h b := rfl
 
 end ResponseExamples
+
+-- ════════════════════════════════════════════════════════════════
+-- HTTP/2 StreamId (RFC 9113 §4.1)
+-- ════════════════════════════════════════════════════════════════
+
+section StreamIdExamples
+open Network.HTTP2
+
+-- StreamId.zero is valid
+example : StreamId.zero.val == 0 := by native_decide
+
+-- StreamId carries the 31-bit proof
+example : StreamId.zero.val.toNat < 2^31 := StreamId.zero.hBit
+
+-- Client-initiated streams are odd
+example : StreamId.isClientInitiated (StreamId.fromWire 1) = true := by native_decide
+example : StreamId.isClientInitiated (StreamId.fromWire 3) = true := by native_decide
+
+-- Server-initiated streams are even (non-zero)
+example : StreamId.isServerInitiated (StreamId.fromWire 2) = true := by native_decide
+example : StreamId.isServerInitiated (StreamId.fromWire 4) = true := by native_decide
+
+-- Zero is neither client nor server initiated
+example : StreamId.isClientInitiated StreamId.zero = false := by native_decide
+example : StreamId.isServerInitiated StreamId.zero = false := by native_decide
+
+-- fromWire masks the high bit
+example : (StreamId.fromWire 0xFFFFFFFF).val == 0x7FFFFFFF := by native_decide
+
+-- FrameHeader payload length theorems
+example := @FrameHeader.payloadLength_4_valid
+example := @FrameHeader.payloadLength_8_valid
+example := @FrameHeader.payloadLength_0_valid
+
+end StreamIdExamples
+
+-- ════════════════════════════════════════════════════════════════
+-- Phase 1 type-strengthening witnesses
+-- ════════════════════════════════════════════════════════════════
+
+section Phase1TypeStrengthening
+open Data
+
+-- Char: digitToInt returns bounded subtype
+example : (Char'.digitToInt '0').isSome = true := by native_decide
+example : (Char'.digitToInt 'F').isSome = true := by native_decide
+example : (Char'.digitToInt 'g').isNone = true := by native_decide
+
+-- Char: intToDigit is total (no Option)
+example : Char'.intToDigit 0 = '0' := by native_decide
+example : Char'.intToDigit 15 = 'f' := by native_decide
+
+-- Char: isAscii_bound theorem
+example := @Char'.isAscii_bound
+
+-- FiniteBits: popCountBounded, countLeadingZeros, countTrailingZeros return bounded subtypes
+example : (FiniteBits.popCountBounded (0xFF : UInt8)).val = 8 := by native_decide
+example : (FiniteBits.countLeadingZeros (1 : UInt8)).val = 7 := by native_decide
+example : (FiniteBits.countTrailingZeros (2 : UInt8)).val = 1 := by native_decide
+
+-- List: scanr, tails, inits return NonEmpty
+example : (List'.scanr (· + ·) 0 [1, 2, 3]).head = 6 := by native_decide
+example : (List'.tails [1, 2, 3]).head = [1, 2, 3] := by native_decide
+example : (List'.inits [1, 2, 3]).head = [] := by native_decide
+
+-- Foldable: minimum1 / maximum1 are total on NonEmpty
+example : Foldable.minimum1 (List.NonEmpty.mk 3 [1, 4, 1, 5]) = 1 := by native_decide
+example : Foldable.maximum1 (List.NonEmpty.mk 3 [1, 4, 1, 5]) = 5 := by native_decide
+
+end Phase1TypeStrengthening

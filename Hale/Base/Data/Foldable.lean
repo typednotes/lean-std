@@ -91,6 +91,16 @@ namespace Foldable
 @[inline] def product [Foldable F] [Mul α] [OfNat α 1] (t : F α) : α :=
   Foldable.foldl (· * ·) 1 t
 
+/-- Total minimum on a non-empty structure. No `Option` needed.
+    $$\text{minimum1}([x_1, \ldots, x_n]) = \min(x_1, \ldots, x_n)$$ -/
+@[inline] def minimum1 [Ord α] (ne : List.NonEmpty α) : α :=
+  ne.tail.foldl (fun acc a => if compare a acc == .lt then a else acc) ne.head
+
+/-- Total maximum on a non-empty structure. No `Option` needed.
+    $$\text{maximum1}([x_1, \ldots, x_n]) = \max(x_1, \ldots, x_n)$$ -/
+@[inline] def maximum1 [Ord α] (ne : List.NonEmpty α) : α :=
+  ne.tail.foldl (fun acc a => if compare a acc == .gt then a else acc) ne.head
+
 end Foldable
 
 -- ── Instances ──────────────────────────────────

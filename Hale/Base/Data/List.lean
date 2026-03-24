@@ -1,3 +1,5 @@
+import Hale.Base.Data.List.NonEmpty
+
 /-
   Hale.Base.Data.List — Extended list operations
 
@@ -76,16 +78,18 @@ where
 -- ── Sublists ────────────────────────────────────
 
 /-- All suffixes, from longest to shortest, including `[]`.
+    Returns `NonEmpty` since every list has at least the empty suffix.
     $$\text{tails}([1,2,3]) = [[1,2,3],[2,3],[3],[]]$$ -/
-def tails : List α → List (List α)
-  | [] => [[]]
-  | x :: xs => (x :: xs) :: tails xs
+def tails : List α → List.NonEmpty (List α)
+  | [] => List.NonEmpty.singleton []
+  | x :: xs => ⟨x :: xs, (tails xs).toList⟩
 
 /-- All prefixes, from shortest to longest.
+    Returns `NonEmpty` since every list has at least the empty prefix.
     $$\text{inits}([1,2,3]) = [[],[1],[1,2],[1,2,3]]$$ -/
-def inits : List α → List (List α)
-  | [] => [[]]
-  | x :: xs => [] :: (inits xs).map (x :: ·)
+def inits : List α → List.NonEmpty (List α)
+  | [] => List.NonEmpty.singleton []
+  | x :: xs => ⟨[], (inits xs).toList.map (x :: ·)⟩
 
 /-- All subsequences (power set), including `[]`.
     $$|\text{subsequences}(l)| = 2^{|l|}$$ -/
@@ -125,14 +129,13 @@ def unfoldr (f : β → Option (α × β)) (seed : β) (fuel : Nat := 10000) : L
 -- ── Scans ───────────────────────────────────────
 
 /-- Right-to-left scan, producing all intermediate accumulators.
+    Returns `NonEmpty` since the result always includes at least the initial accumulator `z`.
     $$\text{scanr}(f, z, [x_1, \ldots, x_n]) = [f(x_1, f(x_2, \ldots f(x_n, z))), \ldots, f(x_n, z), z]$$ -/
-def scanr (f : α → β → β) (z : β) : List α → List β
-  | [] => [z]
+def scanr (f : α → β → β) (z : β) : List α → List.NonEmpty β
+  | [] => List.NonEmpty.singleton z
   | x :: xs =>
     let rest := scanr f z xs
-    match rest with
-    | q :: _ => f x q :: rest
-    | [] => [f x z]  -- unreachable by construction
+    ⟨f x rest.head, rest.toList⟩
 
 -- ── Accumulating maps ───────────────────────────
 
@@ -217,25 +220,35 @@ def insertBy (cmp : α → α → Ordering) (x : α) : List α → List α
 
 -- ── Proofs ──────────────────────────────────────
 
-/-- The `tails` function produces `length + 1` suffixes.
-    $$|\text{tails}(l)| = |l| + 1$$ -/
-theorem tails_length (l : List α) : (tails l).length = l.length + 1 := by
+/-- The `tails` function produces `length + 1` suffixes (as a `NonEmpty`).
+    $$|\text{tails}(l).\text{toList}| = |l| + 1$$ -/
+theorem tails_length (l : List α) : (tails l).toList.length = l.length + 1 := by
   induction l with
   | nil => rfl
-  | cons _ xs ih => simp [tails, ih]
+  | cons _ xs ih =>
+    unfold tails
+    simp only [List.NonEmpty.toList, List.length_cons]
+    have : (tails xs).tail.length + 1 = (tails xs).toList.length := by
+      simp [List.NonEmpty.toList]
+    omega
 
-/-- The `inits` function produces `length + 1` prefixes.
-    $$|\text{inits}(l)| = |l| + 1$$ -/
-theorem inits_length (l : List α) : (inits l).length = l.length + 1 := by
+/-- The `inits` function produces `length + 1` prefixes (as a `NonEmpty`).
+    $$|\text{inits}(l).\text{toList}| = |l| + 1$$ -/
+theorem inits_length (l : List α) : (inits l).toList.length = l.length + 1 := by
   induction l with
   | nil => rfl
-  | cons _ xs ih => simp [inits, ih]
+  | cons _ xs ih =>
+    unfold inits
+    simp only [List.NonEmpty.toList, List.length_cons, List.length_map]
+    have : (inits xs).tail.length + 1 = (inits xs).toList.length := by
+      simp [List.NonEmpty.toList]
+    omega
 
-/-- `tails` of the empty list is `[[]]`. -/
-theorem tails_nil : tails ([] : List α) = [[]] := rfl
+/-- `tails` of the empty list is the singleton `[[]]`. -/
+theorem tails_nil : tails ([] : List α) = List.NonEmpty.singleton [] := rfl
 
-/-- `inits` of the empty list is `[[]]`. -/
-theorem inits_nil : inits ([] : List α) = [[]] := rfl
+/-- `inits` of the empty list is the singleton `[[]]`. -/
+theorem inits_nil : inits ([] : List α) = List.NonEmpty.singleton [] := rfl
 
 end List'
 end Data

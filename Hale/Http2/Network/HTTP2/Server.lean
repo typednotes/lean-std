@@ -75,7 +75,7 @@ def initial : ConnectionState :=
     encoderTable := HPACK.DynamicTable.empty 4096
     headerBlockState := .idle
     goawayReceived := false
-    lastGoodStreamId := 0 }
+    lastGoodStreamId := StreamId.zero }
 
 end ConnectionState
 
@@ -143,12 +143,12 @@ def processWindowUpdateFrame (state : ConnectionState) (header : FrameHeader) (p
   | none => .error (.inl { errorCode := .frameSizeError, message := "Invalid WINDOW_UPDATE" })
   | some increment =>
     if increment == 0 then
-      if header.streamId == 0 then
+      if header.streamId.val == 0 then
         .error (.inl { errorCode := .protocolError, message := "WINDOW_UPDATE increment 0 on connection" })
       else
         .error (.inr { streamId := header.streamId, errorCode := .protocolError,
                         message := "WINDOW_UPDATE increment 0" })
-    else if header.streamId == 0 then
+    else if header.streamId.val == 0 then
       -- Connection-level
       match state.flowControl.processWindowUpdate increment with
       | .ok fc => .ok { state with flowControl := fc }
@@ -345,7 +345,7 @@ def runHTTP2Connection
               match frameHeader.frameType with
               | .data =>
                 -- DATA frame: deliver to stream, flow control
-                if frameHeader.streamId == 0 then
+                if frameHeader.streamId.val == 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "DATA on stream 0"
                   done := true
@@ -365,7 +365,7 @@ def runHTTP2Connection
 
               | .headers =>
                 -- HEADERS frame
-                if frameHeader.streamId == 0 then
+                if frameHeader.streamId.val == 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "HEADERS on stream 0"
                   done := true
@@ -426,7 +426,7 @@ def runHTTP2Connection
 
               | .priority =>
                 -- PRIORITY frame
-                if frameHeader.streamId == 0 then
+                if frameHeader.streamId.val == 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "PRIORITY on stream 0"
                   done := true
@@ -442,7 +442,7 @@ def runHTTP2Connection
 
               | .rstStream =>
                 -- RST_STREAM frame
-                if frameHeader.streamId == 0 then
+                if frameHeader.streamId.val == 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "RST_STREAM on stream 0"
                   done := true
@@ -458,7 +458,7 @@ def runHTTP2Connection
 
               | .settings =>
                 -- SETTINGS frame
-                if frameHeader.streamId != 0 then
+                if frameHeader.streamId.val != 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "SETTINGS on non-zero stream"
                   done := true
@@ -481,7 +481,7 @@ def runHTTP2Connection
 
               | .ping =>
                 -- PING frame
-                if frameHeader.streamId != 0 then
+                if frameHeader.streamId.val != 0 then
                   sendGoaway send state.streams.lastClientStreamId .protocolError
                     "PING on non-zero stream"
                   done := true

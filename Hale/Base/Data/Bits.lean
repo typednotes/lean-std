@@ -55,10 +55,13 @@ class Bits (α : Type u) where
 class FiniteBits (α : Type u) extends Bits α where
   /-- The fixed bit width. $$\text{finiteBitSize} \in \mathbb{N}$$ -/
   finiteBitSize : Nat
-  /-- Count of leading zeros from MSB. -/
-  countLeadingZeros : α → Nat
-  /-- Count of trailing zeros from LSB. -/
-  countTrailingZeros : α → Nat
+  /-- Count of set bits (population count), bounded by `finiteBitSize`.
+      $$\text{popCount}(a) \leq \text{finiteBitSize}$$ -/
+  popCountBounded : α → {n : Nat // n ≤ finiteBitSize}
+  /-- Count of leading zeros from MSB, bounded by `finiteBitSize`. -/
+  countLeadingZeros : α → {n : Nat // n ≤ finiteBitSize}
+  /-- Count of trailing zeros from LSB, bounded by `finiteBitSize`. -/
+  countTrailingZeros : α → {n : Nat // n ≤ finiteBitSize}
 
 -- ── Helpers using UInt64 as common representation ──
 
@@ -101,8 +104,9 @@ instance : Bits UInt8 where
 
 instance : FiniteBits UInt8 where
   finiteBitSize := 8
-  countLeadingZeros a := clzU64 a.toUInt64 8
-  countTrailingZeros a := ctzU64 a.toUInt64 8
+  popCountBounded a := ⟨popCountU64 a.toUInt64, by sorry⟩ -- TODO: prove popCount ≤ 8 for UInt8
+  countLeadingZeros a := ⟨clzU64 a.toUInt64 8, by sorry⟩ -- TODO: prove clz ≤ 8
+  countTrailingZeros a := ⟨ctzU64 a.toUInt64 8, by sorry⟩ -- TODO: prove ctz ≤ 8
 
 -- ── UInt16 instance ─────────────────────────────
 
@@ -121,8 +125,9 @@ instance : Bits UInt16 where
 
 instance : FiniteBits UInt16 where
   finiteBitSize := 16
-  countLeadingZeros a := clzU64 a.toUInt64 16
-  countTrailingZeros a := ctzU64 a.toUInt64 16
+  popCountBounded a := ⟨popCountU64 a.toUInt64, by sorry⟩ -- TODO: prove popCount ≤ 16 for UInt16
+  countLeadingZeros a := ⟨clzU64 a.toUInt64 16, by sorry⟩ -- TODO: prove clz ≤ 16
+  countTrailingZeros a := ⟨ctzU64 a.toUInt64 16, by sorry⟩ -- TODO: prove ctz ≤ 16
 
 -- ── UInt32 instance ─────────────────────────────
 
@@ -141,8 +146,9 @@ instance : Bits UInt32 where
 
 instance : FiniteBits UInt32 where
   finiteBitSize := 32
-  countLeadingZeros a := clzU64 a.toUInt64 32
-  countTrailingZeros a := ctzU64 a.toUInt64 32
+  popCountBounded a := ⟨popCountU64 a.toUInt64, by sorry⟩ -- TODO: prove popCount ≤ 32 for UInt32
+  countLeadingZeros a := ⟨clzU64 a.toUInt64 32, by sorry⟩ -- TODO: prove clz ≤ 32
+  countTrailingZeros a := ⟨ctzU64 a.toUInt64 32, by sorry⟩ -- TODO: prove ctz ≤ 32
 
 -- ── UInt64 instance ─────────────────────────────
 
@@ -161,8 +167,9 @@ instance : Bits UInt64 where
 
 instance : FiniteBits UInt64 where
   finiteBitSize := 64
-  countLeadingZeros a := clzU64 a 64
-  countTrailingZeros a := ctzU64 a 64
+  popCountBounded a := ⟨popCountU64 a, by sorry⟩ -- TODO: prove popCount ≤ 64 for UInt64
+  countLeadingZeros a := ⟨clzU64 a 64, by sorry⟩ -- TODO: prove clz ≤ 64
+  countTrailingZeros a := ⟨ctzU64 a 64, by sorry⟩ -- TODO: prove ctz ≤ 64
 
 -- ── Derived operations ──────────────────────────
 
