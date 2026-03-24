@@ -1,2 +1,4 @@
 /.lake
 ffi/*.o
+
+.DS_Store
