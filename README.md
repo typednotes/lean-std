@@ -1,6 +1,26 @@
-# hale
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo-dark.svg">
+    <img src="logo.svg" alt="H∀L∃" width="420">
+  </picture>
+</p>
 
-A port of Haskell's web ecosystem to Lean 4 with a maximalist approach to typing.
+<p align="center">
+  Haskell's web ecosystem, ported to Lean 4 with maximalist typing.
+</p>
+
+<p align="center">
+  <a href="https://github.com/typednotes/hale/actions"><img src="https://github.com/typednotes/hale/workflows/CI/badge.svg" alt="CI"></a>
+  <a href="https://typednotes.github.io/hale/"><img src="https://img.shields.io/badge/docs-mdBook-blue" alt="Docs"></a>
+  <a href="https://github.com/typednotes/hale/stargazers"><img src="https://img.shields.io/github/stars/typednotes/hale?style=flat" alt="GitHub Stars"></a>
+  <a href="https://github.com/typednotes/hale/blob/main/LICENSE"><img src="https://img.shields.io/github/license/typednotes/hale" alt="License"></a>
+  <a href="https://github.com/typednotes/hale"><img src="https://img.shields.io/github/last-commit/typednotes/hale" alt="Last Commit"></a>
+  <a href="https://lean-lang.org/"><img src="https://img.shields.io/badge/Lean-4.29.0-blue" alt="Lean 4"></a>
+</p>
+
+<p align="center">
+  <strong>257 compile-time theorems</strong> · <strong>40 ported libraries</strong> · <strong>223 Lean modules</strong>
+</p>
 
 ## Overview
 

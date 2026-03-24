@@ -30,13 +30,12 @@ jobs:
 
       - name: Rewrite API links for deployment
         run: |
-          # In the deployed site, doc-gen4 output lives at /api/.
-          # The .md files use relative links like ../../Hale/Base.html.
-          # Rewrite them to absolute /api/Hale/... so they work from /guide/.
+          # doc-gen4 output lives at api/ relative to the mdBook root.
+          # Rewrite ../Hale/ and ../../Hale/ links to relative api/Hale/ paths.
+          # Order matters: longest match first to avoid partial replacement.
           find docs -name '*.md' -exec sed -i \
-            -e 's|\.\./\.\./\.\./Hale/|/api/Hale/|g' \
-            -e 's|\.\./\.\./Hale/|/api/Hale/|g' \
-            -e 's|\.\./Hale/|/api/Hale/|g' \
+            -e 's|\.\./\.\./Hale/|../api/Hale/|g' \
+            -e 's|\.\./Hale/|api/Hale/|g' \
             {} +
 
       - name: Build mdBook
@@ -57,7 +56,8 @@ jobs:
           mkdir -p _site
 
           # Guide at root (landing page)
-          cp -r .lake/build/guide/html/* _site/
+          # mdBook 0.5+ outputs directly to build-dir (no html/ subdir)
+          cp -r .lake/build/guide/* _site/
 
           # API reference at /api/
           mkdir -p _site/api

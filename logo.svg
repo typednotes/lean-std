@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 120">
+  <!-- >>= (bind) logo mark: two chevrons + equals bars, Lean blue shades -->
+
+  <!-- First > (darkest) -->
+  <path d="M0,120 L40,60 L0,0 L30,0 L70,60 L30,120Z" fill="#1e40af"/>
+
+  <!-- Second > (medium) — gap of 10 from first -->
+  <path d="M40,120 L80,60 L40,0 L70,0 L110,60 L70,120Z" fill="#3b82f6"/>
+
+  <!-- Top = bar (lightest) — same gap of 10 from second > -->
+  <path d="M103,35 H170 V55 H117 Z" fill="#60a5fa"/>
+
+  <!-- Bottom = bar (lightest) -->
+  <path d="M117,65 H170 V85 H103 Z" fill="#60a5fa"/>
+
+  <!-- H∀L∃  — thin monospace geometric paths, 120 units tall, stroke width 12 -->
+  <g fill="#1e293b">
+    <!-- H -->
+    <path d="M195,0 H207 V54 H253 V0 H265 V120 H253 V66 H207 V120 H195 Z"/>
+    <!-- ∀  (parallelogram legs + crossbar, constant 12-unit width) -->
+    <path d="M285,0 H297 L326,120 H314 Z M343,0 H355 L326,120 H314 Z M307,42 H333 L330,54 H310 Z"/>
+    <!-- L -->
+    <path d="M375,0 H387 V108 H445 V120 H375 Z"/>
+    <!-- ∃ -->
+    <path d="M465,0 H535 V120 H465 V108 H523 V66 H482 V54 H523 V12 H465 Z"/>
+  </g>
+</svg>

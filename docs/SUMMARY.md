@@ -47,6 +47,7 @@
 
 # Reference
 
+- [API Reference (doc-gen4)](api.md)
 - [Proven Properties (257 theorems)](Proofs.md)
 - [Roadmap](Roadmap.md)
 
