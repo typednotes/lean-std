@@ -15,6 +15,7 @@
   - `ErrorCode` covers all defined error codes
   - `SettingsKeyId` covers all defined settings identifiers
   - Numeric conversions are provably inverse for defined values
+  - `Settings` carries proof fields enforcing RFC 9113 value constraints
 
   ## Haskell equivalent
   `Network.HTTP2.Frame.Types` (https://hackage.haskell.org/package/http2)
@@ -115,6 +116,16 @@ theorem fromUInt8_toUInt8_goaway : fromUInt8 (toUInt8 .goaway) = .goaway := by r
 theorem fromUInt8_toUInt8_windowUpdate : fromUInt8 (toUInt8 .windowUpdate) = .windowUpdate := by rfl
 theorem fromUInt8_toUInt8_continuation : fromUInt8 (toUInt8 .continuation) = .continuation := by rfl
 
+/-- Roundtrip for the `unknown` variant: encoding then decoding recovers `.unknown id`,
+    provided `id` does not collide with a known frame type byte (0–9).
+    The theorem is false without this precondition: e.g. `fromUInt8 (toUInt8 (.unknown 0))
+    = fromUInt8 0 = .data ≠ .unknown 0`. -/
+theorem fromUInt8_toUInt8_unknown (id : UInt8) (h : id.toNat ≥ 10) :
+    FrameType.fromUInt8 (FrameType.toUInt8 (.unknown id)) = .unknown id := by
+  simp only [toUInt8]
+  unfold fromUInt8
+  split <;> simp_all
+
 end FrameType
 
 /-- HTTP/2 error codes as defined in RFC 9113 Section 7.
@@ -214,6 +225,16 @@ def fromUInt32 : UInt32 → ErrorCode
   | 13 => .http11Required
   | code => .unknown code
 
+/-- Roundtrip for the `unknown` variant: encoding then decoding recovers `.unknown code`,
+    provided `code` does not collide with a known error code (0–13).
+    The theorem is false without this precondition: e.g. `fromUInt32 (toUInt32 (.unknown 0))
+    = fromUInt32 0 = .noError ≠ .unknown 0`. -/
+theorem fromUInt32_toUInt32_unknown (code : UInt32) (h : code.toNat ≥ 14) :
+    ErrorCode.fromUInt32 (ErrorCode.toUInt32 (.unknown code)) = .unknown code := by
+  simp only [toUInt32]
+  unfold fromUInt32
+  split <;> simp_all
+
 end ErrorCode
 
 /-- HTTP/2 settings identifiers as defined in RFC 9113 Section 6.5.2. -/
@@ -283,7 +304,19 @@ end SettingsKeyId
       \text{initialWindowSize} : \text{UInt32},
       \text{maxFrameSize} : \text{UInt32},
       \text{maxHeaderListSize} : \text{Option}(\mathbb{N})
-    \}$$ -/
+    \}$$
+
+    ## Dependent-type guarantees
+
+    RFC 9113 Section 6.5.2 constrains certain settings values. These constraints
+    are encoded as proof fields that are erased at runtime (zero-cost):
+
+    - **`initialWindowSize`** must be at most $2^{31} - 1$ (`initialWindowSize_valid`)
+    - **`maxFrameSize`** must be in $[2^{14},\; 2^{24} - 1]$ (`maxFrameSize_lower`, `maxFrameSize_upper`)
+
+    The default values (65535 and 16384) automatically satisfy these constraints
+    via `by native_decide`. Attempting to construct a `Settings` with out-of-range values
+    is a type error — the caller must supply a proof or use a validated constructor. -/
 structure Settings where
   /-- Maximum size of the header compression table (SETTINGS_HEADER_TABLE_SIZE).
       Default: 4096 octets. -/
@@ -294,15 +327,32 @@ structure Settings where
       Default: unlimited (none). -/
   maxConcurrentStreams : Option Nat := none
   /-- Initial window size for stream-level flow control (SETTINGS_INITIAL_WINDOW_SIZE).
-      Default: 65535 (2^16 - 1). Must be <= 2^31 - 1. -/
+      Default: 65535 (2^16 - 1). RFC 9113 requires <= 2^31 - 1. -/
   initialWindowSize : UInt32 := 65535
   /-- Maximum frame payload size (SETTINGS_MAX_FRAME_SIZE).
-      Default: 16384 (2^14). Must be in [2^14, 2^24 - 1]. -/
+      Default: 16384 (2^14). RFC 9113 requires value in [2^14, 2^24 - 1]. -/
   maxFrameSize : UInt32 := 16384
   /-- Maximum size of header list (SETTINGS_MAX_HEADER_LIST_SIZE).
       Default: unlimited (none). -/
   maxHeaderListSize : Option Nat := none
-  deriving Repr, Inhabited
+  /-- Proof: `initialWindowSize` is at most $2^{31} - 1$ (RFC 9113 Section 6.5.2). -/
+  initialWindowSize_valid : initialWindowSize.toNat ≤ 2147483647 := by native_decide
+  /-- Proof: `maxFrameSize` is at least $2^{14}$ (RFC 9113 Section 6.5.2). -/
+  maxFrameSize_lower : 16384 ≤ maxFrameSize.toNat := by native_decide
+  /-- Proof: `maxFrameSize` is at most $2^{24} - 1$ (RFC 9113 Section 6.5.2). -/
+  maxFrameSize_upper : maxFrameSize.toNat ≤ 16777215 := by native_decide
+
+instance : Repr Settings where
+  reprPrec s _ :=
+    "{ headerTableSize := " ++ repr s.headerTableSize ++
+    ", enablePush := " ++ repr s.enablePush ++
+    ", maxConcurrentStreams := " ++ repr s.maxConcurrentStreams ++
+    ", initialWindowSize := " ++ repr s.initialWindowSize ++
+    ", maxFrameSize := " ++ repr s.maxFrameSize ++
+    ", maxHeaderListSize := " ++ repr s.maxHeaderListSize ++ " }"
+
+instance : Inhabited Settings where
+  default := {}
 
 instance : BEq Settings where
   beq a b :=

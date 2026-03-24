@@ -85,6 +85,8 @@ import Tests.UnixCompat.TestCompat
 import Tests.StreamingCommons.TestNetwork
 -- WAI
 import Tests.WAI.TestWai
+import Tests.WAI.TestWaiSmoke
+import Tests.Examples
 -- Warp
 import Tests.Warp.TestWarp
 -- HttpTypes
@@ -204,6 +206,7 @@ def main : IO UInt32 := do
   totalFailures := totalFailures + (← runIO "Environment" fun () => TestEnvironment.tests)
   totalFailures := totalFailures + (← runIO "AutoUpdate"  fun () => TestAutoUpdate.tests)
   totalFailures := totalFailures + (← runIO "TimeManager" fun () => TestTimeManager.tests)
+  totalFailures := totalFailures + (← runIO "WAI Smoke"  fun () => TestWaiSmoke.tests)
   -- Concurrency + network IO tests — use dedicated OS threads to avoid pool starvation.
   -- These tests call IO.wait on tasks spawned with IO.asTask (.dedicated).
   -- Currently segfault in compiled mode (exit 139) — needs further investigation.

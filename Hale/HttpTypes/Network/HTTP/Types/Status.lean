@@ -7,12 +7,23 @@
 namespace Network.HTTP.Types
 
 /-- An HTTP status code with a reason phrase.
-    $$\text{Status} = \{ \text{code} : \{n : \mathbb{N} \mid n < 1000\},\; \text{message} : \text{String} \}$$ -/
+
+    Lean 4 dependent-type guarantee: the proof field `statusValid` ensures
+    that every `Status` value has a 3-digit code (100-999) by construction.
+    The proof is erased at runtime (zero cost). Constructing `Status` with
+    an out-of-range code (e.g., 9999) is a compile-time error — `by omega`
+    cannot discharge the obligation.
+
+    $$\text{Status} = \{ \text{code} : \{n : \mathbb{N} \mid 100 \leq n \leq 999\},\; \text{message} : \text{String} \}$$ -/
 structure Status where
-  /-- The numeric status code (100-599 typically, bounded < 1000). -/
+  /-- The numeric status code (100-999, bounded by proof field). -/
   statusCode : Nat
   /-- The reason phrase. -/
   statusMessage : String
+  /-- Proof that the status code is a valid 3-digit HTTP code.
+      Erased at runtime (zero cost). For standard codes the default
+      tactic `by omega` discharges the proof automatically. -/
+  statusValid : 100 ≤ statusCode ∧ statusCode ≤ 999 := by omega
 deriving Repr
 
 instance : BEq Status where
@@ -24,67 +35,68 @@ instance : Ord Status where
 instance : ToString Status where
   toString s := s!"{s.statusCode} {s.statusMessage}"
 
-/-- Create a status from a code. -/
-@[inline] def mkStatus (code : Nat) (msg : String) : Status := ⟨code, msg⟩
+/-- Create a status from a code with a proof of validity. -/
+@[inline] def mkStatus (code : Nat) (msg : String) (h : 100 ≤ code ∧ code ≤ 999 := by omega) : Status :=
+  ⟨code, msg, h⟩
 
 -- ── Informational (1xx) ──
-def status100 : Status := ⟨100, "Continue"⟩
-def status101 : Status := ⟨101, "Switching Protocols"⟩
+def status100 : Status := mkStatus 100 "Continue"
+def status101 : Status := mkStatus 101 "Switching Protocols"
 
 -- ── Success (2xx) ──
-def status200 : Status := ⟨200, "OK"⟩
-def status201 : Status := ⟨201, "Created"⟩
-def status202 : Status := ⟨202, "Accepted"⟩
-def status203 : Status := ⟨203, "Non-Authoritative Information"⟩
-def status204 : Status := ⟨204, "No Content"⟩
-def status205 : Status := ⟨205, "Reset Content"⟩
-def status206 : Status := ⟨206, "Partial Content"⟩
+def status200 : Status := mkStatus 200 "OK"
+def status201 : Status := mkStatus 201 "Created"
+def status202 : Status := mkStatus 202 "Accepted"
+def status203 : Status := mkStatus 203 "Non-Authoritative Information"
+def status204 : Status := mkStatus 204 "No Content"
+def status205 : Status := mkStatus 205 "Reset Content"
+def status206 : Status := mkStatus 206 "Partial Content"
 
 -- ── Redirection (3xx) ──
-def status300 : Status := ⟨300, "Multiple Choices"⟩
-def status301 : Status := ⟨301, "Moved Permanently"⟩
-def status302 : Status := ⟨302, "Found"⟩
-def status303 : Status := ⟨303, "See Other"⟩
-def status304 : Status := ⟨304, "Not Modified"⟩
-def status305 : Status := ⟨305, "Use Proxy"⟩
-def status307 : Status := ⟨307, "Temporary Redirect"⟩
-def status308 : Status := ⟨308, "Permanent Redirect"⟩
+def status300 : Status := mkStatus 300 "Multiple Choices"
+def status301 : Status := mkStatus 301 "Moved Permanently"
+def status302 : Status := mkStatus 302 "Found"
+def status303 : Status := mkStatus 303 "See Other"
+def status304 : Status := mkStatus 304 "Not Modified"
+def status305 : Status := mkStatus 305 "Use Proxy"
+def status307 : Status := mkStatus 307 "Temporary Redirect"
+def status308 : Status := mkStatus 308 "Permanent Redirect"
 
 -- ── Client Error (4xx) ──
-def status400 : Status := ⟨400, "Bad Request"⟩
-def status401 : Status := ⟨401, "Unauthorized"⟩
-def status402 : Status := ⟨402, "Payment Required"⟩
-def status403 : Status := ⟨403, "Forbidden"⟩
-def status404 : Status := ⟨404, "Not Found"⟩
-def status405 : Status := ⟨405, "Method Not Allowed"⟩
-def status406 : Status := ⟨406, "Not Acceptable"⟩
-def status407 : Status := ⟨407, "Proxy Authentication Required"⟩
-def status408 : Status := ⟨408, "Request Timeout"⟩
-def status409 : Status := ⟨409, "Conflict"⟩
-def status410 : Status := ⟨410, "Gone"⟩
-def status411 : Status := ⟨411, "Length Required"⟩
-def status412 : Status := ⟨412, "Precondition Failed"⟩
-def status413 : Status := ⟨413, "Request Entity Too Large"⟩
-def status414 : Status := ⟨414, "Request-URI Too Long"⟩
-def status415 : Status := ⟨415, "Unsupported Media Type"⟩
-def status416 : Status := ⟨416, "Requested Range Not Satisfiable"⟩
-def status417 : Status := ⟨417, "Expectation Failed"⟩
-def status418 : Status := ⟨418, "I'm a teapot"⟩
-def status422 : Status := ⟨422, "Unprocessable Entity"⟩
-def status426 : Status := ⟨426, "Upgrade Required"⟩
-def status428 : Status := ⟨428, "Precondition Required"⟩
-def status429 : Status := ⟨429, "Too Many Requests"⟩
-def status431 : Status := ⟨431, "Request Header Fields Too Large"⟩
-def status451 : Status := ⟨451, "Unavailable For Legal Reasons"⟩
+def status400 : Status := mkStatus 400 "Bad Request"
+def status401 : Status := mkStatus 401 "Unauthorized"
+def status402 : Status := mkStatus 402 "Payment Required"
+def status403 : Status := mkStatus 403 "Forbidden"
+def status404 : Status := mkStatus 404 "Not Found"
+def status405 : Status := mkStatus 405 "Method Not Allowed"
+def status406 : Status := mkStatus 406 "Not Acceptable"
+def status407 : Status := mkStatus 407 "Proxy Authentication Required"
+def status408 : Status := mkStatus 408 "Request Timeout"
+def status409 : Status := mkStatus 409 "Conflict"
+def status410 : Status := mkStatus 410 "Gone"
+def status411 : Status := mkStatus 411 "Length Required"
+def status412 : Status := mkStatus 412 "Precondition Failed"
+def status413 : Status := mkStatus 413 "Request Entity Too Large"
+def status414 : Status := mkStatus 414 "Request-URI Too Long"
+def status415 : Status := mkStatus 415 "Unsupported Media Type"
+def status416 : Status := mkStatus 416 "Requested Range Not Satisfiable"
+def status417 : Status := mkStatus 417 "Expectation Failed"
+def status418 : Status := mkStatus 418 "I'm a teapot"
+def status422 : Status := mkStatus 422 "Unprocessable Entity"
+def status426 : Status := mkStatus 426 "Upgrade Required"
+def status428 : Status := mkStatus 428 "Precondition Required"
+def status429 : Status := mkStatus 429 "Too Many Requests"
+def status431 : Status := mkStatus 431 "Request Header Fields Too Large"
+def status451 : Status := mkStatus 451 "Unavailable For Legal Reasons"
 
 -- ── Server Error (5xx) ──
-def status500 : Status := ⟨500, "Internal Server Error"⟩
-def status501 : Status := ⟨501, "Not Implemented"⟩
-def status502 : Status := ⟨502, "Bad Gateway"⟩
-def status503 : Status := ⟨503, "Service Unavailable"⟩
-def status504 : Status := ⟨504, "Gateway Timeout"⟩
-def status505 : Status := ⟨505, "HTTP Version Not Supported"⟩
-def status511 : Status := ⟨511, "Network Authentication Required"⟩
+def status500 : Status := mkStatus 500 "Internal Server Error"
+def status501 : Status := mkStatus 501 "Not Implemented"
+def status502 : Status := mkStatus 502 "Bad Gateway"
+def status503 : Status := mkStatus 503 "Service Unavailable"
+def status504 : Status := mkStatus 504 "Gateway Timeout"
+def status505 : Status := mkStatus 505 "HTTP Version Not Supported"
+def status511 : Status := mkStatus 511 "Network Authentication Required"
 
 -- ── Aliases ──
 def ok200 : Status := status200
@@ -115,22 +127,24 @@ def serviceUnavailable503 : Status := status503
 @[inline] def Status.isServerError (s : Status) : Bool := s.statusCode / 100 == 5
 
 -- ── Well-formedness theorems ──
+-- Note: The `statusValid` proof field already guarantees 100 ≤ code ≤ 999.
+-- These additional theorems prove the tighter [100, 599] range for standard codes.
 
 /-- All standard status codes are in the valid HTTP range [100, 599]. -/
 theorem status200_valid : 100 ≤ status200.statusCode ∧ status200.statusCode ≤ 599 := by
-  simp [status200]
+  simp [status200, mkStatus]
 
 theorem status404_valid : 100 ≤ status404.statusCode ∧ status404.statusCode ≤ 599 := by
-  simp [status404]
+  simp [status404, mkStatus]
 
 theorem status500_valid : 100 ≤ status500.statusCode ∧ status500.statusCode ≤ 599 := by
-  simp [status500]
+  simp [status500, mkStatus]
 
 theorem status100_valid : 100 ≤ status100.statusCode ∧ status100.statusCode ≤ 599 := by
-  simp [status100]
+  simp [status100, mkStatus]
 
 theorem status301_valid : 100 ≤ status301.statusCode ∧ status301.statusCode ≤ 599 := by
-  simp [status301]
+  simp [status301, mkStatus]
 
 -- ═══════════════════════════════════════════════════════════
 -- RFC 9110 §15: Status Code Semantics

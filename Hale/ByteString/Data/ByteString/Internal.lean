@@ -657,5 +657,17 @@ theorem null_iff_length_zero (bs : ByteString) :
     bs.null = true ↔ bs.length = 0 := by
   simp [null, length, BEq.beq]
 
+/-- Length of `take`: the result has `min n bs.len` bytes.
+    $$|\text{take}(n, bs)| = \min(n, |bs|)$$ -/
+theorem take_length (n : Nat) (bs : ByteString) :
+    (bs.take n).len = min n bs.len := by
+  simp [take]
+
+/-- Length of `drop`: the result has `bs.len - min n bs.len` bytes.
+    $$|\text{drop}(n, bs)| = |bs| - \min(n, |bs|)$$ -/
+theorem drop_length (n : Nat) (bs : ByteString) :
+    (bs.drop n).len = bs.len - min n bs.len := by
+  simp [drop]
+
 end ByteString
 end Data.ByteString

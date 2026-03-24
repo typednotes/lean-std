@@ -44,6 +44,7 @@ lean_lib Tests where
   globs := #[.submodules `Tests]
   needs := #[haleffi]
 
+@[test_driver]
 lean_exe «hale-tests» where
   root := `Tests.Main
 

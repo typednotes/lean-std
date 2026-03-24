@@ -109,4 +109,20 @@ theorem opcode_roundtrip_ping : Opcode.fromUInt8 (Opcode.toUInt8 .ping) = .ping 
 theorem opcode_roundtrip_pong : Opcode.fromUInt8 (Opcode.toUInt8 .pong) = .pong := rfl
 theorem opcode_roundtrip_continuation : Opcode.fromUInt8 (Opcode.toUInt8 .continuation) = .continuation := rfl
 
+/-- Roundtrip for the `reserved` variant: encoding then decoding recovers `.reserved v`.
+
+    Note: The roundtrip only holds when `v` does not collide with a named opcode
+    (0=continuation, 1=text, 2=binary, 8=close, 9=ping, 10=pong). Each non-colliding
+    value (3–7, 11–15) is verified individually by `rfl`. -/
+theorem opcode_roundtrip_reserved_3 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨3, by omega⟩)) = .reserved ⟨3, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_4 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨4, by omega⟩)) = .reserved ⟨4, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_5 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨5, by omega⟩)) = .reserved ⟨5, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_6 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨6, by omega⟩)) = .reserved ⟨6, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_7 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨7, by omega⟩)) = .reserved ⟨7, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_11 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨11, by omega⟩)) = .reserved ⟨11, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_12 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨12, by omega⟩)) = .reserved ⟨12, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_13 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨13, by omega⟩)) = .reserved ⟨13, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_14 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨14, by omega⟩)) = .reserved ⟨14, by omega⟩ := by rfl
+theorem opcode_roundtrip_reserved_15 : Opcode.fromUInt8 (Opcode.toUInt8 (.reserved ⟨15, by omega⟩)) = .reserved ⟨15, by omega⟩ := by rfl
+
 end Network.WebSockets

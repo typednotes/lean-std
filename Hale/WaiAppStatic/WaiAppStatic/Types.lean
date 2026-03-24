@@ -52,10 +52,15 @@ def toPiece (t : String) : Option Piece :=
   else
     none
 
-/-- Unsafe constructor for trusted input (proofs elided with sorry).
-    Only use for known-safe literals like `"index.html"`.
-    -- TODO: prove safety for specific string literals -/
-def unsafeToPiece (t : String) : Piece := ⟨t, sorry, sorry⟩
+/-- Construct a `Piece` from a known-safe string literal.
+    The proofs are discharged by `native_decide` — only use with
+    compile-time-constant strings that are known not to start with '.'
+    and not to contain '/'.
+    $$\text{unsafeToPiece} : \text{String} \to \text{Piece}$$ -/
+def unsafeToPiece (t : String)
+    (h1 : startsDot t = false := by native_decide)
+    (h2 : containsSlash t = false := by native_decide) : Piece :=
+  ⟨t, h1, h2⟩
 
 /-- Request path segments. The root path is the empty list. -/
 abbrev Pieces := List Piece

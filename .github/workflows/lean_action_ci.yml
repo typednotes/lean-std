@@ -1,4 +1,4 @@
-name: Lean Action CI
+name: CI
 
 on:
   push:
@@ -6,9 +6,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
+
+      - name: Build
+        run: lake build
+
+      - name: Test
+        run: lake test
+
+      - name: Count remaining sorrys
+        run: |
+          count=$(grep -r "sorry" Hale/ --include="*.lean" -l 2>/dev/null | wc -l | tr -d ' ')
+          echo "Files with sorry: $count"
+          grep -rn "sorry" Hale/ --include="*.lean" || echo "No sorrys found"

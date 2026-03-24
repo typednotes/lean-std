@@ -103,6 +103,8 @@ def decodeSettingsPayload (bs : ByteArray) : Option (List (SettingsKeyId × UInt
     go 0 [] count
 
 /-- Apply decoded settings parameters to a `Settings` structure.
+    Values that violate RFC 9113 constraints are silently ignored (defense in depth;
+    callers should validate before calling this function).
     $$\text{applySettings} : \text{Settings} \to \text{List}(\text{SettingsKeyId} \times \text{UInt32}) \to \text{Settings}$$ -/
 def applySettings (s : Settings) (params : List (SettingsKeyId × UInt32)) : Settings :=
   params.foldl (fun s (k, v) =>
@@ -110,8 +112,16 @@ def applySettings (s : Settings) (params : List (SettingsKeyId × UInt32)) : Set
     | .headerTableSize => { s with headerTableSize := v.toNat }
     | .enablePush => { s with enablePush := v != 0 }
     | .maxConcurrentStreams => { s with maxConcurrentStreams := some v.toNat }
-    | .initialWindowSize => { s with initialWindowSize := v }
-    | .maxFrameSize => { s with maxFrameSize := v }
+    | .initialWindowSize =>
+      if h : v.toNat ≤ 2147483647 then
+        { s with initialWindowSize := v, initialWindowSize_valid := h }
+      else s
+    | .maxFrameSize =>
+      if h1 : 16384 ≤ v.toNat then
+        if h2 : v.toNat ≤ 16777215 then
+          { s with maxFrameSize := v, maxFrameSize_lower := h1, maxFrameSize_upper := h2 }
+        else s
+      else s
     | .maxHeaderListSize => { s with maxHeaderListSize := some v.toNat }
     | .unknown _ => s
   ) s

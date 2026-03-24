@@ -31,37 +31,40 @@ class FoldCase (α : Type) where
     $$\text{CI}(\alpha) = \{ \text{original} : \alpha,\; \text{foldedCase} : \alpha \}$$
 
     Invariant: `foldedCase = FoldCase.foldCase original` -/
-structure CI (α : Type) where
+structure CI (α : Type) [FoldCase α] where
+  protected mk ::
   /-- The original, unmodified value. -/
   original : α
   /-- The case-folded value, used for comparison. -/
   foldedCase : α
+  /-- Invariant: `foldedCase` is always the case-folded form of `original`. -/
+  inv : foldedCase = FoldCase.foldCase original
 
 namespace CI
 
 /-- Smart constructor that computes the folded form automatically.
     $$\text{mk'}(x) = \text{CI}(x, \text{foldCase}(x))$$ -/
 @[inline] def mk' [FoldCase α] (x : α) : CI α :=
-  ⟨x, FoldCase.foldCase x⟩
+  CI.mk x (FoldCase.foldCase x) rfl
 
 /-- Map a function over both original and folded values.
     $$\text{map}(f, \text{CI}(o, fc)) = \text{CI}(f(o), \text{foldCase}(f(o)))$$ -/
-@[inline] def map [FoldCase β] (f : α → β) (ci : CI α) : CI β :=
+@[inline] def map [FoldCase α] [FoldCase β] (f : α → β) (ci : CI α) : CI β :=
   mk' (f ci.original)
 
-instance [BEq α] : BEq (CI α) where
+instance [FoldCase α] [BEq α] : BEq (CI α) where
   beq a b := a.foldedCase == b.foldedCase
 
-instance [Hashable α] : Hashable (CI α) where
+instance [FoldCase α] [Hashable α] : Hashable (CI α) where
   hash ci := hash ci.foldedCase
 
-instance [Ord α] : Ord (CI α) where
+instance [FoldCase α] [Ord α] : Ord (CI α) where
   compare a b := compare a.foldedCase b.foldedCase
 
-instance [ToString α] : ToString (CI α) where
+instance [FoldCase α] [ToString α] : ToString (CI α) where
   toString ci := toString ci.original
 
-instance [Repr α] : Repr (CI α) where
+instance [FoldCase α] [Repr α] : Repr (CI α) where
   reprPrec ci n := reprPrec ci.original n
 
 -- FoldCase instances
@@ -75,7 +78,7 @@ instance : FoldCase Char where
 -- Proofs
 
 /-- Two CI values are equal iff their folded cases are equal. -/
-theorem ci_eq_iff [BEq α] (a b : CI α) : (a == b) = (a.foldedCase == b.foldedCase) := rfl
+theorem ci_eq_iff [FoldCase α] [BEq α] (a b : CI α) : (a == b) = (a.foldedCase == b.foldedCase) := rfl
 
 end CI
 end Data
